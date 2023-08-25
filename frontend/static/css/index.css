@@ -1,0 +1,18 @@
+html, body {
+    overflow-y: scroll;
+    margin: 0;
+    padding: 0;
+    background-color: #F1F4F8;
+}
+
+#main {
+    overflow-y: scroll;
+    width: 100%;
+    left: 0;
+    top: 0;
+}
+
+#app {
+    overflow-y: scroll;
+    width: 100%;
+}
