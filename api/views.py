@@ -24,6 +24,9 @@ from django.contrib.auth.models import User
 from .serializers import RegisterSerializer
 from rest_framework import generics
 
+# statistics utilities
+from . import statUtil
+
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = RegisterSerializer
@@ -95,18 +98,24 @@ class CreateSimulationView(APIView):
     def post(self, request, format="None"):
         serializer = self.serializer_class(data=request.data)
         
-        maxx = serializer.initial_data['maxx']
-        maxy = serializer.initial_data['maxy']
-        minx = serializer.initial_data['minx']
-        miny = serializer.initial_data['miny']
-        cellSize = serializer.initial_data['cellSize']
-        realizations = serializer.initial_data['realizations']
+        # TODO: Add error handling for type mismatches, etc.
+        maxx = int(serializer.initial_data['maxx'])
+        maxy = int(serializer.initial_data['maxy'])
+        minx = int(serializer.initial_data['minx'])
+        miny = int(serializer.initial_data['miny'])
+        cellSize = int(serializer.initial_data['cellSize']) # Resolution
+        realizations = int(serializer.initial_data['realizations'])
         email = serializer.initial_data['email']
         user = User.objects.get(id=request.user.id)
         # saves simulation request
         req = SimulationRequest(user=user, maxx=maxx, maxy=maxy, minx=minx, miny=miny, cellSize=cellSize, realizations=realizations, email=email)
         req.save()
         print("received this email request", email)
+        # TODO: Hard coding K and Rad values for now - figure out long term solution
+        k = 100
+        rad = 50000
+        
+        statUtil.cosim_mm1(minx=minx,maxx=maxx,miny=miny,maxy=maxy,res=cellSize,sim_num=realizations,k=k,rad=rad)
 
 
         # TODO SETUP USER so THIS PASSES
