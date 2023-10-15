@@ -99,10 +99,10 @@ class CreateSimulationView(APIView):
         serializer = self.serializer_class(data=request.data)
         
         # TODO: Add error handling for type mismatches, etc.
-        maxx = int(serializer.initial_data['maxx'])
-        maxy = int(serializer.initial_data['maxy'])
-        minx = int(serializer.initial_data['minx'])
-        miny = int(serializer.initial_data['miny'])
+        maxx = float(serializer.initial_data['maxx'])
+        maxy = float(serializer.initial_data['maxy'])
+        minx = float(serializer.initial_data['minx'])
+        miny = float(serializer.initial_data['miny'])
         cellSize = int(serializer.initial_data['cellSize']) # Resolution
         realizations = int(serializer.initial_data['realizations'])
         email = serializer.initial_data['email']
