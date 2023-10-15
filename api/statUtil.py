@@ -160,6 +160,8 @@ def cosim_mm1(minx: float, maxx: float, miny: float, maxy: float, res: int, sim_
 #       X: From -299900 to -150100
 #       Y: From -1800000 to -1,650000
     
+    # TODO: Remove hard coding of arguments. 
+    
     minx = -280000 ; maxx = -160000 ; miny = -1780000 ; maxy = -1670000; res = 1000; sim_num = 1
     #minx = data_minx ; maxx = data_maxx ; miny = data_miny ; maxy = data_maxy
     
@@ -246,7 +248,7 @@ def cosim_mm1(minx: float, maxx: float, miny: float, maxy: float, res: int, sim_
     xmin = minx; xmax = maxx     # min and max x values
     ymin = miny; ymax = maxy
     
-    
+    # TODO: Change this call to use find_nearby_factors_int
     elevationGridDimensions = getXYLengths(len(df_surface['Surface'].values),xmin,xmax,ymin,ymax) # Returns tuple where first element is X length and second element is y length
     elevation = np.reshape(df_surface['Surface'].values, (elevationGridDimensions[1],elevationGridDimensions[0] ))
     
