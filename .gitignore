@@ -3,3 +3,4 @@ venv
 .DS_Store
 *.ipynb
 api/output/*
+!api/test.ipynb
