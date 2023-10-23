@@ -25,7 +25,7 @@ from .serializers import RegisterSerializer
 from rest_framework import generics
 
 # statistics utilities
-from . import statUtil
+from . import demogorgn
 
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
@@ -115,7 +115,8 @@ class CreateSimulationView(APIView):
         k = 100
         rad = 50000
         
-        statUtil.cosim_mm1(minx=minx,maxx=maxx,miny=miny,maxy=maxy,res=cellSize,sim_num=realizations,k=k,rad=rad)
+        #statUtil.cosim_mm1(minx=minx,maxx=maxx,miny=miny,maxy=maxy,res=cellSize,sim_num=realizations,k=k,rad=rad)
+        demogorgn.simulate(None,None,None,None,cellSize,realizations)
 
 
         # TODO SETUP USER so THIS PASSES

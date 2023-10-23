@@ -1,0 +1,21 @@
+django
+djangorestframework
+
+# Modules for Statistics
+scikit-gstat
+numpy==1.25
+matplotlib 
+scikit-learn
+#gstatsim
+#gstools
+pandas
+
+
+## Pyvista and jupyter notebook
+ipykernel
+pyvista[jupyter]>=0.38.1
+jupyter-server-proxy
+trame
+trame-vtk
+ipywidgets
+ipyvtklink

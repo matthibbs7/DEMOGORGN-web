@@ -15,7 +15,7 @@ source ./venv/bin/activate
 
 3. Install Python3 dependencies:
 ```bash
-pip3 install -r requirements.txt
+pip3 install -r requirements_sgs_parallelization.txt
 ```
 
 ### Setup Dev Environment
