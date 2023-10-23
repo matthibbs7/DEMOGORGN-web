@@ -28,6 +28,21 @@ from rest_framework import generics
 # statistics utilities
 from . import demogorgn
 
+class ListUserSimulationsView(APIView):
+    # Ensure only authenticated users can access this view
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # Filter SimulationRequest objects by the authenticated user
+        user_simulations = SimulationRequest.objects.filter(user=request.user)
+
+        # Serialize the queryset
+        serializer = requestSerializer(user_simulations, many=True)
+
+        # Return the serialized data
+        return Response(serializer.data)
+
+
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = RegisterSerializer
