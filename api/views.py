@@ -28,6 +28,11 @@ from rest_framework import generics
 # statistics utilities
 from . import demogorgn
 
+import os
+import base64
+
+SITE_ROOT = os.path.dirname(os.path.realpath(__file__))
+
 class ListUserSimulationsView(APIView):
     # Ensure only authenticated users can access this view
     permission_classes = [IsAuthenticated]
@@ -156,3 +161,38 @@ class CreateSimulationView(APIView):
         #     print(serializer.data)
         #     print("TEST POST backend")
         return Response(serializer.initial_data)
+    
+class SimulationImageEndpoint(APIView):
+    # Ensure only authenticated users can access this view
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, guid, realization):
+        try:
+            # Query for the SimulationRequest object with the provided GUID for the authenticated user
+            simulation_request = SimulationRequest.objects.get(user=request.user, guid=guid)
+            
+            maxRealization = simulation_request.realizations-1
+            
+            if realization > maxRealization or realization < 0:
+                return Response({"error": "Invalid Realization Number"}, status=status.HTTP_404_NOT_FOUND)
+            
+            # Construct the path to the PNG file (you may need to adjust this based on your actual directory structure)
+            #png_path = os.path.join(SITE_ROOT, f"{guid}/{realization}.png")
+            png_path = os.path.join(SITE_ROOT, "output")
+            png_path = os.path.join(png_path, f"{guid}")
+            png_path = os.path.join(png_path,str(realization))
+            png_path = os.path.join(png_path,"plot.png")
+            
+            # Check if the PNG file exists
+            if not os.path.exists(png_path):
+                return Response({"error": "PNG file not found"}, status=status.HTTP_404_NOT_FOUND)
+            
+            # Read the PNG file and convert it to a base64 encoded string
+            with open(png_path, "rb") as png_file:
+                base64_encoded_png = base64.b64encode(png_file.read()).decode("utf-8")
+            
+            # Return the base64 encoded string as the response
+            return Response({"base64_image": base64_encoded_png})
+
+        except SimulationRequest.DoesNotExist:
+            return Response({"error": "Simulation request not found"}, status=status.HTTP_404_NOT_FOUND)
