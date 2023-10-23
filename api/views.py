@@ -6,6 +6,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.contrib.auth.models import User
 import time
+import uuid 
 
 # ---write endpoints here---
 
@@ -108,16 +109,18 @@ class CreateSimulationView(APIView):
         email = serializer.initial_data['email']
         user = User.objects.get(id=request.user.id)
         # saves simulation request
-        req = SimulationRequest(user=user, maxx=maxx, maxy=maxy, minx=minx, miny=miny, cellSize=cellSize, realizations=realizations, email=email)
-        req.save()
+        
+        guid = str(uuid.uuid4())
+  
         print("received this email request", email)
         # TODO: Hard coding K and Rad values for now - figure out long term solution
-        k = 100
-        rad = 50000
+        #k = 100
+        #rad = 50000
         
         #statUtil.cosim_mm1(minx=minx,maxx=maxx,miny=miny,maxy=maxy,res=cellSize,sim_num=realizations,k=k,rad=rad)
-        demogorgn.simulate(None,None,None,None,cellSize,realizations)
-
+        demogorgn.simulate(None,None,None,None,cellSize,realizations,guid)
+        req = SimulationRequest(user=user, maxx=maxx, maxy=maxy, minx=minx, miny=miny, cellSize=cellSize, realizations=realizations, email=email, guid=guid)
+        req.save()
 
         # TODO SETUP USER so THIS PASSES
         # if serializer.is_valid():

@@ -44,7 +44,7 @@ def plt_graph(sim, df_bed, res, x, y, z, filename):
     plot_i.savefig(filename, bbox_inches = 'tight')
     
 
-def simulate(xmin: float, xmax: float, ymin: float, ymax : float, res: int, num_realizations: int):
+def simulate(xmin: float, xmax: float, ymin: float, ymax : float, res: int, num_realizations: int, guid: str):
     """
     Performs Sequential Gaussian co-simulation (Co-SGS) on a section of Greenland topography.
 
@@ -97,7 +97,7 @@ def simulate(xmin: float, xmax: float, ymin: float, ymax : float, res: int, num_
     n_lags = 100            # number of bins
     gamma = sgs_preprocess.get_variograms(df_data, n_lags, max_lag, processes)
     
-    guid = str(uuid.uuid4())
+    #guid = str(uuid.uuid4())
     for i in range(num_realizations):
 
         print(f'-----------------------------------------')
