@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from django.contrib.auth.models import User
 import time
 import uuid 
+from django.http import HttpResponse
 
 # ---write endpoints here---
 
@@ -193,6 +194,40 @@ class SimulationImageEndpoint(APIView):
             
             # Return the base64 encoded string as the response
             return Response({"base64_image": base64_encoded_png})
+
+        except SimulationRequest.DoesNotExist:
+            return Response({"error": "Simulation request not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+class SimulationCSVEndpoint(APIView):
+    # Ensure only authenticated users can access this view
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, guid, realization):
+        try:
+            # Query for the SimulationRequest object with the provided GUID for the authenticated user
+            simulation_request = SimulationRequest.objects.get(user=request.user, guid=guid)
+            
+            maxRealization = simulation_request.realizations-1
+            
+            if realization > maxRealization or realization < 0:
+                return Response({"error": "Invalid Realization Number"}, status=status.HTTP_404_NOT_FOUND)
+            
+            # Construct the path to the CSV file (this needs adjustment based on the actual directory structure)
+            csv_path = os.path.join(SITE_ROOT, "output", f"{guid}", str(realization), "sim.csv")
+            
+            # Check if the CSV file exists
+            if not os.path.exists(csv_path):
+                return Response({"error": "CSV file not found"}, status=status.HTTP_404_NOT_FOUND)
+            
+            # Read the CSV file
+            with open(csv_path, "r") as csv_file:
+                csv_content = csv_file.read()
+
+            # Create the response with CSV content and headers for file download
+            response = HttpResponse(csv_content, content_type='text/csv')
+            response['Content-Disposition'] = f'attachment; filename="{guid}_{realization}.csv"'
+            
+            return response
 
         except SimulationRequest.DoesNotExist:
             return Response({"error": "Simulation request not found"}, status=status.HTTP_404_NOT_FOUND)
