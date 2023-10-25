@@ -1,2 +1,9 @@
 django
 djangorestframework
+
+# Modules for Statistics
+scikit-gstat
+numpy==1.25
+matplotlib 
+gstatsim
+gstools

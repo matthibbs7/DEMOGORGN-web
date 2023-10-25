@@ -7,7 +7,7 @@ from .models import SimulationRequest
 class requestSerializer(serializers.ModelSerializer):
     class Meta:
         model = SimulationRequest
-        fields = ('id', 'user', 'minx', 'maxx', 'miny', 'maxy', 'cellSize', 'realizations', 'email', 'date')
+        fields = ('id', 'user', 'minx', 'maxx', 'miny', 'maxy', 'cellSize', 'realizations', 'email', 'date','guid')
 
 # user model (for registration/login)
 

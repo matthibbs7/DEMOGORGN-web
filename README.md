@@ -2,8 +2,21 @@
 <img src="https://i.imgur.com/5LRRmIO.png" width="70%" height="70%" />
 
 ### Dev Onboarding
-1. Install Python3 dependencies:
-`pip3 install django djangorestframework`
+1. Create Virtual Environment
+
+```bash
+python3 -m venv venv
+```
+2. Activate the virtual environment
+
+```bash
+source ./venv/bin/activate
+```
+
+3. Install Python3 dependencies:
+```bash
+pip3 install -r requirements_sgs_parallelization.txt
+```
 
 ### Setup Dev Environment
 There are 2 steps required to get the website setup on your local environment (start the frontend and backend servers):

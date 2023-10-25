@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import listView, requestView, CreateSimulationView, RegisterView
+from .views import listView, requestView, CreateSimulationView, RegisterView, ListUserSimulationsView, SimulationImageEndpoint, SimulationCSVEndpoint
 from . import views
 # if we get blank url, call main function
 
@@ -14,4 +14,8 @@ urlpatterns = [
     path('session/', views.SessionView.as_view(), name='api-session'),  # new
     path('whoami/', views.WhoAmIView.as_view(), name='api-whoami'),  # new
     path('register/', RegisterView.as_view(), name='auth_register'),
+    path('user_simulations/', ListUserSimulationsView.as_view(), name='user_simulations'),
+    path('simulation-image/<str:guid>/<int:realization>/', SimulationImageEndpoint.as_view(), name='simulation-image'),
+    path('simulation-csv/<str:guid>/<int:realization>/', SimulationCSVEndpoint.as_view(), name='simulation-csv'),
+
 ]

@@ -6,6 +6,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.contrib.auth.models import User
 import time
+import uuid 
+from django.http import HttpResponse
 
 # ---write endpoints here---
 
@@ -23,6 +25,29 @@ import json
 from django.contrib.auth.models import User
 from .serializers import RegisterSerializer
 from rest_framework import generics
+
+# statistics utilities
+from . import demogorgn
+
+import os
+import base64
+
+SITE_ROOT = os.path.dirname(os.path.realpath(__file__))
+
+class ListUserSimulationsView(APIView):
+    # Ensure only authenticated users can access this view
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # Filter SimulationRequest objects by the authenticated user
+        user_simulations = SimulationRequest.objects.filter(user=request.user)
+
+        # Serialize the queryset
+        serializer = requestSerializer(user_simulations, many=True)
+
+        # Return the serialized data
+        return Response(serializer.data)
+
 
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
@@ -95,19 +120,28 @@ class CreateSimulationView(APIView):
     def post(self, request, format="None"):
         serializer = self.serializer_class(data=request.data)
         
-        maxx = serializer.initial_data['maxx']
-        maxy = serializer.initial_data['maxy']
-        minx = serializer.initial_data['minx']
-        miny = serializer.initial_data['miny']
-        cellSize = serializer.initial_data['cellSize']
-        realizations = serializer.initial_data['realizations']
+        # TODO: Add error handling for type mismatches, etc.
+        maxx = float(serializer.initial_data['maxx'])
+        maxy = float(serializer.initial_data['maxy'])
+        minx = float(serializer.initial_data['minx'])
+        miny = float(serializer.initial_data['miny'])
+        cellSize = int(serializer.initial_data['cellSize']) # Resolution
+        realizations = int(serializer.initial_data['realizations'])
         email = serializer.initial_data['email']
         user = User.objects.get(id=request.user.id)
         # saves simulation request
-        req = SimulationRequest(user=user, maxx=maxx, maxy=maxy, minx=minx, miny=miny, cellSize=cellSize, realizations=realizations, email=email)
-        req.save()
+        
+        guid = str(uuid.uuid4())
+  
         print("received this email request", email)
-
+        # TODO: Hard coding K and Rad values for now - figure out long term solution
+        #k = 100
+        #rad = 50000
+        
+        #statUtil.cosim_mm1(minx=minx,maxx=maxx,miny=miny,maxy=maxy,res=cellSize,sim_num=realizations,k=k,rad=rad)
+        demogorgn.simulate(None,None,None,None,cellSize,realizations,guid)
+        req = SimulationRequest(user=user, maxx=maxx, maxy=maxy, minx=minx, miny=miny, cellSize=cellSize, realizations=realizations, email=email, guid=guid)
+        req.save()
 
         # TODO SETUP USER so THIS PASSES
         # if serializer.is_valid():
@@ -128,3 +162,72 @@ class CreateSimulationView(APIView):
         #     print(serializer.data)
         #     print("TEST POST backend")
         return Response(serializer.initial_data)
+    
+class SimulationImageEndpoint(APIView):
+    # Ensure only authenticated users can access this view
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, guid, realization):
+        try:
+            # Query for the SimulationRequest object with the provided GUID for the authenticated user
+            simulation_request = SimulationRequest.objects.get(user=request.user, guid=guid)
+            
+            maxRealization = simulation_request.realizations-1
+            
+            if realization > maxRealization or realization < 0:
+                return Response({"error": "Invalid Realization Number"}, status=status.HTTP_404_NOT_FOUND)
+            
+            # Construct the path to the PNG file (you may need to adjust this based on your actual directory structure)
+            #png_path = os.path.join(SITE_ROOT, f"{guid}/{realization}.png")
+            png_path = os.path.join(SITE_ROOT, "output")
+            png_path = os.path.join(png_path, f"{guid}")
+            png_path = os.path.join(png_path,str(realization))
+            png_path = os.path.join(png_path,"plot.png")
+            
+            # Check if the PNG file exists
+            if not os.path.exists(png_path):
+                return Response({"error": "PNG file not found"}, status=status.HTTP_404_NOT_FOUND)
+            
+            # Read the PNG file and convert it to a base64 encoded string
+            with open(png_path, "rb") as png_file:
+                base64_encoded_png = base64.b64encode(png_file.read()).decode("utf-8")
+            
+            # Return the base64 encoded string as the response
+            return Response({"base64_image": base64_encoded_png})
+
+        except SimulationRequest.DoesNotExist:
+            return Response({"error": "Simulation request not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+class SimulationCSVEndpoint(APIView):
+    # Ensure only authenticated users can access this view
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, guid, realization):
+        try:
+            # Query for the SimulationRequest object with the provided GUID for the authenticated user
+            simulation_request = SimulationRequest.objects.get(user=request.user, guid=guid)
+            
+            maxRealization = simulation_request.realizations-1
+            
+            if realization > maxRealization or realization < 0:
+                return Response({"error": "Invalid Realization Number"}, status=status.HTTP_404_NOT_FOUND)
+            
+            # Construct the path to the CSV file (this needs adjustment based on the actual directory structure)
+            csv_path = os.path.join(SITE_ROOT, "output", f"{guid}", str(realization), "sim.csv")
+            
+            # Check if the CSV file exists
+            if not os.path.exists(csv_path):
+                return Response({"error": "CSV file not found"}, status=status.HTTP_404_NOT_FOUND)
+            
+            # Read the CSV file
+            with open(csv_path, "r") as csv_file:
+                csv_content = csv_file.read()
+
+            # Create the response with CSV content and headers for file download
+            response = HttpResponse(csv_content, content_type='text/csv')
+            response['Content-Disposition'] = f'attachment; filename="{guid}_{realization}.csv"'
+            
+            return response
+
+        except SimulationRequest.DoesNotExist:
+            return Response({"error": "Simulation request not found"}, status=status.HTTP_404_NOT_FOUND)

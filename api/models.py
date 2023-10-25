@@ -13,3 +13,4 @@ class SimulationRequest(models.Model):
     realizations = models.IntegerField()
     email = models.EmailField()
     date = models.DateTimeField(auto_now_add=True)
+    guid = models.CharField(max_length=255,default='DEFAULT')
