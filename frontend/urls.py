@@ -7,5 +7,6 @@ urlpatterns = [
     path('auth', index),
     path('auth2', index),
     path('methodology', index),
-    path('profile', index)
+    path('profile', index),
+    path('about', index)
 ]

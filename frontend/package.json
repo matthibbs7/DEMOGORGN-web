@@ -28,6 +28,7 @@
     "@emotion/styled": "^11.10.4",
     "@fontsource/ibm-plex-sans": "^4.5.13",
     "@fontsource/ibm-plex-sans-arabic": "^4.5.10",
+    "@pmmmwh/react-refresh-webpack-plugin": "^0.5.11",
     "css-loader": "^6.7.1",
     "file-loader": "^6.2.0",
     "framer-motion": "^7.5.3",
@@ -35,6 +36,7 @@
     "react-hot-toast": "^2.4.0",
     "react-icons": "^4.6.0",
     "react-leaflet": "^4.1.0",
+    "react-refresh": "^0.14.0",
     "react-router-dom": "^6.4.1",
     "recoil": "^0.7.6",
     "style-loader": "^3.3.1"
