@@ -6,8 +6,8 @@ const MethodologyPage = (props) => {
     return (
         <>
             <Flex justifyContent='center' flexDirection="column">
-                <Flex ml="auto" mr="auto" width="100%" maxWidth="1050px" bgColor="#F1F4F8" mb={5}>
-                    <Flex justifyContent='center' mt={5} flexDirection='column'>
+                <Flex ml="auto" mr="auto" width="100%" maxWidth="1050px" bgColor="#F1F4F8" mb={[0,0,5,5]}>
+                    <Flex justifyContent='center' mt={[0,0,5,5]} flexDirection='column'>
                         <MethodCard />
                     </Flex>
                 </Flex>

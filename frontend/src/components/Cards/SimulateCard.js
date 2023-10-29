@@ -8,6 +8,7 @@ import {
     Rectangle
   } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css'
+import { IoFlagSharp } from 'react-icons/io5';
 
 const HOST_PREFIX = process.env.HOST_PREFIX ?? 'http://127.0.0.1:8000';
 
@@ -85,13 +86,8 @@ const SimulateCard = () => {
          },
           body: JSON.stringify({
             user: username,
-            minx: simulationForm.minx,
-            maxx: simulationForm.maxx,
-            miny: simulationForm.miny,
-            maxy: simulationForm.maxy,
-            cellSize: simulationForm.cellSize,
-            realizations: simulationForm.realizations,
-            email: email
+            email: email,
+            ...simulationForm
           }),
         });
         const data = await request.json();
@@ -168,8 +164,8 @@ const SimulateCard = () => {
 
     return (
         <>  
-            <Flex bg="white" border="1px solid black" flexDirection='row' flexWrap='wrap'>
-                <Flex width="50%" bgColor="white" flexDirection='column' p="30px">
+            <Flex bg="white" border="1px solid black" flexDirection={['column', 'column', 'row', 'row']} flexWrap='wrap'>
+                <Flex width={["100%", "100%", "50%", "50%"]} bgColor="white" flexDirection='column' p="30px">
                 <Text fontWeight={600} fontSize="18pt" mb={2} >Simulate Greenland Topography</Text>
                     <Flex direction='column'  p={3}>
 
@@ -203,16 +199,16 @@ const SimulateCard = () => {
                             <Button fontWeight={600} isLoading={loading} type="submit" fontSize="11pt" pl="15px" _hover={{backgroundColor: '#044dd4'}} bg="linear-gradient(90deg, rgba(115,109,221,1) 0%, rgba(92,162,247,1) 100%, rgba(0,212,255,1) 100%);" color="white" borderRadius={0} mt={4} width="210px" height="48px">Generate Realizations&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→</Button>
                             {/* <Button _hover={{bgColor: '#108bfe'}} isLoading={loading} type="submit" backgroundColor="#0E61FE" color='white'>Generate Realizations</Button> */}
                         </form>
-                        <Link mt={3}>
-                            <Text fontSize="11pt" fontWeight={600} color="#0E61FE">Read more about the methodology →</Text>
+                        <Link href="/methodology" mt={3}>
+                            <Text fontSize="11pt" fontWeight={600} color="#0E61FE">Read more about the Methodology →</Text>
                         </Link>
-                        <Link mt={0.5}>
+                        <Link href="/about" mt={0.5}>
                             <Text fontSize="11pt" fontWeight={600} color="#0E61FE">Learn about the Gator Glaciology Lab →</Text>
                         </Link>
                     </Flex>
                 </Flex>
-                <Flex width="50%" bgColor="white" padding="30px">
-                <MapContainer minZoom={3} style={{height: "550px", width: "100%", border: '1px solid lightgray'}} center={[75.505, -40.09]} zoom={3} scrollWheelZoom={false}>
+                <Flex width={["100%", "100%", "50%", "50%"]} bgColor="white" padding="30px">
+                <MapContainer minZoom={3} style={{height: "550px", width: "100%", border: '1px solid lightgray'}} center={[75.505, -40.09]} zoom={3} trackResize={false} dragging={false} doubleClickZoom={false} scrollWheelZoom={false}>
                     <TileLayer
                         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                         url="https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}"
