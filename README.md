@@ -25,3 +25,13 @@ There are 2 steps required to get the website setup on your local environment (s
 3. Go to parent directory (~/DEMOGORGN-web): `cd ..`
 4. Start Django (backend) server: `python3 ./manage.py runserver`
 5. Local build should be hosted on http://127.0.0.1:8000/ by default
+
+
+### Docker set up
+
+```
+docker container rm -f demogorgn_test 
+docker image rm demogorgn:latest
+docker build --platform linux/amd64 -t demogorgn . -f Dockerfile_oel8
+docker run --platform linux/amd64  -d -p 9999:80 --name demogorgn_test demogorgn:latest
+```
