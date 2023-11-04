@@ -5,3 +5,4 @@ venv*
 api/output/*
 !api/test.ipynb
 api/data/total_demo_gl_not_gridded.csv
+frontend/node_modules

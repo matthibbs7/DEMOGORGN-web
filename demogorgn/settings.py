@@ -25,12 +25,14 @@ SECRET_KEY = 'django-insecure-(a(^!5hrc8a1&#cc25ya3des(h7-m10wpqt(qq&a+x5qz7zzia
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+#ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.example.com']
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    'corsheaders',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -43,6 +45,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -142,3 +145,16 @@ SESSION_COOKIE_SAMESITE = 'Strict'
 CSRF_COOKIE_HTTPONLY = True
 SESSION_COOKIE_HTTPONLY = True
 
+
+CORS_ALLOW_ALL_ORIGINS = True
+
+# Or, if you only want to allow specific origins, use the following instead
+#CORS_ALLOWED_ORIGINS = [
+#    "http://localhost:8000",
+#    "http://127.0.0.1:8000",
+#    "http://localhost:9999",
+#    "http://127.0.0.1:9999",
+#]
+
+
+CORS_ALLOW_CREDENTIALS = True

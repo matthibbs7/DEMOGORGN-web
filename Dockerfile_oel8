@@ -1,0 +1,66 @@
+# Use Oracle Enterprise Linux 8 as the base image
+FROM oraclelinux:8
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+ENV PYTHONPATH /pubapps/emackie/demogorgn/dev:$PYTHONPATH
+
+# Set work directory
+WORKDIR /pubapps/emackie/demogorgn/dev
+
+# Install system dependencies
+RUN dnf install -y gcc openssl-devel bzip2-devel libffi-devel
+RUN dnf install -y wget make
+
+
+
+# Install Python and pip. Python 3.6 comes by default in OEL 8.
+# If Python 3.7 is needed, you will need to enable the appropriate module stream.
+# RUN dnf module reset python27
+# RUN dnf module enable python37
+RUN dnf install -y python39 python39-pip
+
+# Install Node.js for the React build process
+# Node.js might need to be installed from the AppStream repository or other source.
+RUN dnf module install -y nodejs:12
+
+# Install Gunicorn
+RUN pip3 install gunicorn
+
+# Install Nginx
+RUN dnf install -y nginx
+
+# Copy the Django REST API and React frontend into the image
+COPY ./api /pubapps/emackie/demogorgn/dev/api
+COPY ./frontend /pubapps/emackie/demogorgn/dev/frontend
+COPY ./requirements.txt /pubapps/emackie/demogorgn/dev/requirements.txt
+COPY ./db.sqlite3 /pubapps/emackie/demogorgn/dev/db.sqlite3
+
+
+# Copy the SQLITE database into the container 
+COPY ./demogorgn /pubapps/emackie/demogorgn/dev/demogorgn
+
+# Install Python dependencies
+RUN pip3 install -r requirements.txt
+
+# Build the React frontend
+RUN cd frontend && npm install && npm run build
+
+# Copy the Nginx configuration file
+COPY ./nginx.conf /etc/nginx/nginx.conf
+
+# Copy the Gunicorn configuration file
+COPY ./gunicorn.conf.py /pubapps/emackie/demogorgn/dev/gunicorn.conf.py
+
+
+# Make port 80 available to the world outside this container
+EXPOSE 80
+
+RUN pip3 install supervisor
+COPY supervisord.conf /etc/
+
+
+# Start Nginx and Gunicorn
+CMD ["supervisord", "-c", "/etc/supervisord.conf"]
+

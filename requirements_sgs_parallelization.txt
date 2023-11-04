@@ -12,10 +12,10 @@ pandas
 
 
 ## Pyvista and jupyter notebook
-ipykernel
-pyvista[jupyter]>=0.38.1
-jupyter-server-proxy
-trame
-trame-vtk
-ipywidgets
-ipyvtklink
+#ipykernel
+#pyvista[jupyter]>=0.38.1
+#jupyter-server-proxy
+#trame
+#trame-vtk
+#ipywidgets
+#ipyvtklink

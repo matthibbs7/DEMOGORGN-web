@@ -1,5 +1,7 @@
 const path = require("path");
 const webpack = require("webpack");
+const HtmlWebpackPlugin = require('html-webpack-plugin'); // Import the plugin
+
 
 module.exports = {
   entry: "./src/index.js",
@@ -46,6 +48,10 @@ module.exports = {
         // This has effect on the react lib size
         NODE_ENV: JSON.stringify("production"),
       },
+    }),
+    new HtmlWebpackPlugin({
+      template: './templates/frontend/index.html', // Path to your HTML template
+      filename: 'index.html', // Output file name
     }),
   ],
 };
