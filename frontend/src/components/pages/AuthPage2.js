@@ -48,9 +48,9 @@ const AuthPage2 = (props) => {
         getSession();
     }, [])
 
-    const getCSRF = () => {
+    const getCSRFOLD = () => { //TODO REMOVE
         fetch("/api/csrf/", {
-            credentials: "same-origin",
+            credentials: "include",
         })
         .then((res) => {
             let csrfToken = res.headers.get("X-CSRFToken");
@@ -62,9 +62,42 @@ const AuthPage2 = (props) => {
         });
     }
 
+    //
+    const getCSRFTokenFromCookies = () => {
+        let csrfToken = "";
+        const cookies = document.cookie.split(";");
+        for (let i = 0; i < cookies.length; i++) {
+            let cookie = cookies[i].trim();
+            if (cookie.startsWith("csrftoken=")) {
+                csrfToken = cookie.substring("csrftoken=".length);
+                break;
+            }
+        }
+        return csrfToken;
+    };
+    
+    const getCSRF = () => {
+        fetch("/api/csrf/", {
+            credentials: "include",
+        })
+        .then((res) => {
+            let csrfToken = getCSRFTokenFromCookies();
+            setCsrf(csrfToken);
+            console.log(csrfToken);
+        })
+        .catch((err) => {
+            console.log(err);
+        });
+    };
+    //
+
     const getSession = () => {
+        getCSRF();
         fetch("/api/session/", {
-            credentials: "same-origin",
+            credentials: "include",
+            headers: {
+                "X-CSRFToken": csrf,
+            },
         })
         .then((res) => res.json())
         .then((data) => {
@@ -87,7 +120,7 @@ const AuthPage2 = (props) => {
             headers: {
               "Content-Type": "application/json",
             },
-            credentials: "same-origin",
+            credentials: "include",
         })
         .then((res) => res.json())
         .then((data) => {
@@ -125,7 +158,7 @@ const AuthPage2 = (props) => {
             headers: {
                 "Content-Type": "application/json",
             },
-            credentials: "same-origin",
+            credentials: "include",
             body: JSON.stringify({username: signUpForm.username, password: signUpForm.password, email: signUpForm.email}),
         })
         .then(isResponseOk)
@@ -156,7 +189,7 @@ const AuthPage2 = (props) => {
                 "Content-Type": "application/json",
                 "X-CSRFToken": csrf,
             },
-            credentials: "same-origin",
+            credentials: "include",
             body: JSON.stringify({username: loginForm.username, password: loginForm.password}),
         })
         .then(isResponseOk)
@@ -192,7 +225,7 @@ const AuthPage2 = (props) => {
 
     const logout = () => {
         fetch("/api/logout", {
-            credentials: "same-origin",
+            credentials: "include",
         })
         .then(isResponseOk)
         .then((data) => {

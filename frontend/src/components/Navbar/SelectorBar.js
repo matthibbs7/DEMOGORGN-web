@@ -18,7 +18,7 @@ const SelectorBar = () => {
             headers: {
               "Content-Type": "application/json",
             },
-            credentials: "same-origin",
+            credentials: "include",
         })
         .then((res) => res.json())
         .then((data) => {
@@ -39,7 +39,7 @@ const SelectorBar = () => {
 
     const getSession = () => {
         fetch("/api/session/", {
-            credentials: "same-origin",
+            credentials: "include",
         })
         .then((res) => res.json())
         .then((data) => {
@@ -68,7 +68,7 @@ const SelectorBar = () => {
 
     const logout = () => {
         fetch("/api/logout", {
-            credentials: "same-origin",
+            credentials: "include",
         })
         .then(isResponseOk)
         .then((data) => {
@@ -96,7 +96,7 @@ const SelectorBar = () => {
 
     const getCSRF = () => {
         fetch("/api/csrf/", {
-            credentials: "same-origin",
+            credentials: "include",
         })
         .then((res) => {
             let csrfToken = res.headers.get("X-CSRFToken");

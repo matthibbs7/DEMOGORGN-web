@@ -1,7 +1,7 @@
 import React from 'react';
 import { Text, Flex } from '@chakra-ui/react'
 import IntroCard from '../Cards/IntroCard';
-import CounterCard from '../Cards/CounterCard';
+import CounterCard from '../Cards/Countercard';
 
 const SimulationPage = () => {
     return (

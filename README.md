@@ -20,8 +20,20 @@ pip3 install -r requirements_sgs_parallelization.txt
 
 ### Setup Dev Environment
 There are 2 steps required to get the website setup on your local environment (start the frontend and backend servers):
-1. Go into the frontend directory (ie: `cd frontend`)
-2. Start dev server in frontend directory: `npm run dev`
-3. Go to parent directory (~/DEMOGORGN-web): `cd ..`
-4. Start Django (backend) server: `python3 ./manage.py runserver`
-5. Local build should be hosted on http://127.0.0.1:8000/ by default
+1. In Project Root start Django (backend) server: `python3 ./manage.py runserver` . This will start django on port 8000
+2. Go into the frontend directory (ie: `cd frontend`)
+3. Install any dependencies that may be missing: `npm install`
+4. Install any dependencies that may be missing: `npm run start` . This will server up static files on port 3000 and proxy requests sent to /api/* to django at port 8000
+5. Project is available at http://localhost:8000
+
+
+
+### Docker set up
+
+```
+docker container rm -f demogorgn_test 
+docker image rm demogorgn:latest
+docker build --platform linux/amd64 -t demogorgn . -f Dockerfile_oel8
+docker run --platform linux/amd64  -d -p 8000:80 --name demogorgn_test demogorgn:latest
+```
+

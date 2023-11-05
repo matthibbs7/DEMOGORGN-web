@@ -1,9 +1,10 @@
 django
 djangorestframework
-
+django-cors-headers # Needed for CORS 
 # Modules for Statistics
 scikit-gstat
-numpy==1.25
+#numpy==1.25
+numpy
 matplotlib 
 gstatsim
 gstools

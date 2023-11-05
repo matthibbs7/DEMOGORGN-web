@@ -10,11 +10,14 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
+print("Loading settings.py...") 
+import os
+print(os.environ.get('DJANGO_SETTINGS_MODULE'))
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
+import os 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
@@ -25,12 +28,23 @@ SECRET_KEY = 'django-insecure-(a(^!5hrc8a1&#cc25ya3des(h7-m10wpqt(qq&a+x5qz7zzia
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+#ALLOWED_HOSTS = []
+ALLOWED_HOSTS=['*']
+#CORS_ORIGIN_ALLOW_ALL = True
 
+CUSTOM_CORS_ORIGINS = [
+    'http://localhost:8000',  # Add your other origins here as needed
+]
 
+CORS_ALLOWED_ORIGINS = CUSTOM_CORS_ORIGINS
+CORS_ORIGIN_WHITELIST = CUSTOM_CORS_ORIGINS
+CSRF_TRUSTED_ORIGINS = CUSTOM_CORS_ORIGINS
+
+#CORS_ALLOW_ALL_ORIGINS = True
 # Application definition
 
 INSTALLED_APPS = [
+    'corsheaders',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -43,6 +57,8 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'demogorgn.middleware.LoggingMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -137,8 +153,41 @@ REST_FRAMEWORK = {
 
 STATIC_URL = '/static/'
 
-CSRF_COOKIE_SAMESITE = 'Strict'
-SESSION_COOKIE_SAMESITE = 'Strict'
-CSRF_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SECURE = False  # Set to True if using HTTPS
+SESSION_COOKIE_SECURE = False  # Set to True if using HTTPS
+
+CSRF_COOKIE_HTTPONLY = False
 SESSION_COOKIE_HTTPONLY = True
 
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'django.log'),
+            'formatter': 'verbose',  # Use the 'verbose' formatter defined above
+        },
+    },
+    'loggers': {
+        '': {  # This is the root logger which captures messages from all loggers
+            'handlers': ['console', 'file'],  # Add 'file' to the handlers list
+            'level': 'DEBUG',
+        },
+    },
+}
+
+CORS_ALLOW_CREDENTIALS = True

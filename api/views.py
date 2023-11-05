@@ -8,7 +8,6 @@ from django.contrib.auth.models import User
 import time
 import uuid 
 from django.http import HttpResponse
-
 # ---write endpoints here---
 
 ### authentication endpoints ###
@@ -27,12 +26,17 @@ from .serializers import RegisterSerializer
 from rest_framework import generics
 
 # statistics utilities
-from . import demogorgn
+from . import demogorgn_backend
 
 import os
 import base64
 
 SITE_ROOT = os.path.dirname(os.path.realpath(__file__))
+
+import logging
+
+logger = logging.getLogger(__name__)
+#logger.info(f"CORS_ALLOW_ALL_ORIGINS: {settings.CORS_ALLOW_ALL_ORIGINS}")
 
 class ListUserSimulationsView(APIView):
     # Ensure only authenticated users can access this view
@@ -139,7 +143,7 @@ class CreateSimulationView(APIView):
         #rad = 50000
         
         #statUtil.cosim_mm1(minx=minx,maxx=maxx,miny=miny,maxy=maxy,res=cellSize,sim_num=realizations,k=k,rad=rad)
-        demogorgn.simulate(None,None,None,None,cellSize,realizations,guid)
+        demogorgn_backend.simulate(None,None,None,None,cellSize,realizations,guid)
         req = SimulationRequest(user=user, maxx=maxx, maxy=maxy, minx=minx, miny=miny, cellSize=cellSize, realizations=realizations, email=email, guid=guid)
         req.save()
 
