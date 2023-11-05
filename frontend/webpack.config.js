@@ -46,7 +46,7 @@ module.exports = {
     new webpack.DefinePlugin({
       "process.env": {
         // This has effect on the react lib size
-        NODE_ENV: JSON.stringify("production"),
+       // NODE_ENV: JSON.stringify("production"),
       },
     }),
     new HtmlWebpackPlugin({
@@ -54,4 +54,17 @@ module.exports = {
       filename: 'index.html', // Output file name
     }),
   ],
+  devServer: {
+    static: {
+      directory: path.join(__dirname, 'static/frontend'), // Assuming your compiled assets are here
+    },
+    historyApiFallback: true, // This is necessary for single-page applications
+    compress: true,
+    port: 3000, // You can choose any port you want
+    open: true, // This will open the browser automatically
+    hot: true,
+    proxy: {
+      '/api': 'http://localhost:8000', // Proxy API requests to Django backend server
+    },
+  },
 };
