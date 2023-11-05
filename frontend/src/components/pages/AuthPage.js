@@ -21,7 +21,7 @@ class AuthPage extends React.Component {
 
   getCSRF = () => {
     fetch("/api/csrf/", {
-      credentials: "same-origin",
+      credentials: "include",
     })
     .then((res) => {
       let csrfToken = res.headers.get("X-CSRFToken");
@@ -35,7 +35,7 @@ class AuthPage extends React.Component {
 
   getSession = () => {
     fetch("/api/session/", {
-      credentials: "same-origin",
+      credentials: "include",
     })
     .then((res) => res.json())
     .then((data) => {
@@ -57,7 +57,7 @@ class AuthPage extends React.Component {
       headers: {
         "Content-Type": "application/json",
       },
-      credentials: "same-origin",
+      credentials: "include",
     })
     .then((res) => res.json())
     .then((data) => {
@@ -92,7 +92,7 @@ class AuthPage extends React.Component {
         "Content-Type": "application/json",
         "X-CSRFToken": this.state.csrf,
       },
-      credentials: "same-origin",
+      credentials: "include",
       body: JSON.stringify({username: this.state.username, password: this.state.password}),
     })
     .then(this.isResponseOk)
@@ -108,7 +108,7 @@ class AuthPage extends React.Component {
 
   logout = () => {
     fetch("/api/logout", {
-      credentials: "same-origin",
+      credentials: "include",
     })
     .then(this.isResponseOk)
     .then((data) => {

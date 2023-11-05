@@ -23,7 +23,7 @@ const SimulateCard = () => {
 
     const getSession = () => {
         fetch("/api/session/", {
-            credentials: "same-origin",
+            credentials: "include",
         })
         .then((res) => res.json())
         .then((data) => {
@@ -45,7 +45,7 @@ const SimulateCard = () => {
 
     const getCSRF = () => {
         fetch("/api/csrf/", {
-            credentials: "same-origin",
+            credentials: "include",
         })
         .then((res) => {
             let csrfToken = res.headers.get("X-CSRFToken");
@@ -137,7 +137,7 @@ const SimulateCard = () => {
             headers: {
               "Content-Type": "application/json",
             },
-            credentials: "same-origin",
+            credentials: "include",
         })
 
         if (!res.ok) {

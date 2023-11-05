@@ -14,7 +14,7 @@ const ProfilePage = (props) => {
 
     const getSession = () => {
         fetch("/api/session/", {
-            credentials: "same-origin",
+            credentials: "include",
         })
         .then((res) => res.json())
         .then((data) => {
@@ -37,7 +37,7 @@ const ProfilePage = (props) => {
             headers: {
               "Content-Type": "application/json",
             },
-            credentials: "same-origin",
+            credentials: "include",
         })
         .then((res) => res.json())
         .then((data) => {

@@ -3,14 +3,34 @@ import React, { useEffect, useState } from 'react';
 
 const IntroCard = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [csrf, setCsrf] = useState("");
+    
+    const getCSRF = () => {
+        fetch("/api/csrf/", {
+            credentials: "include",
+        })
+        .then((res) => {
+            let csrfToken = res.headers.get("X-CSRFToken");
+            setCsrf(csrfToken);
+            console.log(csrfToken);
+        })
+        .catch((err) => {
+            console.log(err);
+        });
+    }
 
+    
     useEffect(() => {
         getSession();
     }, [])
 
     const getSession = () => {
         fetch("/api/session/", {
-            credentials: "same-origin",
+            credentials: "include",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": csrf,
+            },
         })
         .then((res) => res.json())
         .then((data) => {
