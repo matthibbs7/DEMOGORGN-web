@@ -6,6 +6,7 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 ENV PYTHONPATH /pubapps/emackie/demogorgn/dev:$PYTHONPATH
 
+ENV DJANGO_SETTINGS_MODULE=demogorgn.settings
 # Set work directory
 WORKDIR /pubapps/emackie/demogorgn/dev
 
@@ -32,17 +33,19 @@ RUN pip3 install gunicorn
 RUN dnf install -y nginx
 
 # Copy the Django REST API and React frontend into the image
-COPY ./api /pubapps/emackie/demogorgn/dev/api
-COPY ./frontend /pubapps/emackie/demogorgn/dev/frontend
-COPY ./requirements.txt /pubapps/emackie/demogorgn/dev/requirements.txt
-COPY ./db.sqlite3 /pubapps/emackie/demogorgn/dev/db.sqlite3
 
 
 # Copy the SQLITE database into the container 
-COPY ./demogorgn /pubapps/emackie/demogorgn/dev/demogorgn
+COPY ./requirements.txt /pubapps/emackie/demogorgn/dev/requirements.txt
+
 
 # Install Python dependencies
 RUN pip3 install -r requirements.txt
+
+COPY ./demogorgn /pubapps/emackie/demogorgn/dev/demogorgn
+COPY ./api /pubapps/emackie/demogorgn/dev/api
+COPY ./frontend /pubapps/emackie/demogorgn/dev/frontend
+COPY ./db.sqlite3 /pubapps/emackie/demogorgn/dev/db.sqlite3
 
 # Build the React frontend
 RUN cd frontend && npm install && npm run build
