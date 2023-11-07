@@ -27,7 +27,7 @@ from rest_framework import generics
 
 # statistics utilities
 from . import demogorgn_backend
-
+import datetime 
 import os
 import base64
 
@@ -235,3 +235,57 @@ class SimulationCSVEndpoint(APIView):
 
         except SimulationRequest.DoesNotExist:
             return Response({"error": "Simulation request not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        
+class GetStatusView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, guid):
+        # Placeholder for your logic to get the status
+        requestList = [
+            {
+                "guid": "abc",
+                "rid": 0,
+                "timestamp": datetime.datetime.utcnow(),
+                "status": "PENDING"
+            },
+            {
+                "guid": "abc",
+                "rid": 1,
+                "timestamp": datetime.datetime.utcnow(),
+                "status": "PROCESSING"
+            },
+            {
+                "guid": "abc",
+                "rid": 2,
+                "timestamp": datetime.datetime.utcnow(),
+                "status": "COMPLETE"
+            },      
+            {
+                "guid": "abc",
+                "rid": 3,
+                "timestamp": datetime.datetime.utcnow(),
+                "status": "COMPLETE"
+            },  
+            {
+                "guid": "abc",
+                "rid": 4,
+                "timestamp": datetime.datetime.utcnow(),
+                "status": "ERROR"
+            },  
+        ]
+        return JsonResponse({'statuses': requestList})
+
+class CancelRealizationGUIDView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, guid):
+        # Placeholder for your logic to cancel the realization based on GUID
+        return HttpResponse('Deleted', status=200)
+
+class CancelRealizationGUIDRIDView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, guid, rid):
+        # Placeholder for your logic to cancel the realization based on GUID and RID
+        return HttpResponse('Deleted', status=200)

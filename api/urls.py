@@ -17,5 +17,7 @@ urlpatterns = [
     path('user_simulations/', ListUserSimulationsView.as_view(), name='user_simulations'),
     path('simulation-image/<str:guid>/<int:realization>/', SimulationImageEndpoint.as_view(), name='simulation-image'),
     path('simulation-csv/<str:guid>/<int:realization>/', SimulationCSVEndpoint.as_view(), name='simulation-csv'),
-
+    path('get_status/<str:guid>/', views.GetStatusView.as_view(), name='get_status'),
+    path('cancel_realization/<str:guid>/', views.CancelRealizationGUIDView.as_view(), name='cancel_realization_guid'),
+    path('cancel_realization/<str:guid>/<int:rid>/', views.CancelRealizationGUIDRIDView.as_view(), name='cancel_realization_guid_rid'),
 ]
