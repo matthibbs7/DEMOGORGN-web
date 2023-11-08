@@ -27,7 +27,7 @@ from rest_framework import generics
 
 # statistics utilities
 from . import demogorgn_backend
-
+import datetime 
 import os
 import base64
 
@@ -165,7 +165,7 @@ class CreateSimulationView(APIView):
 
         #     print(serializer.data)
         #     print("TEST POST backend")
-        return Response(serializer.initial_data)
+        return Response({"guid":guid})
     
 class SimulationImageEndpoint(APIView):
     # Ensure only authenticated users can access this view
@@ -235,3 +235,63 @@ class SimulationCSVEndpoint(APIView):
 
         except SimulationRequest.DoesNotExist:
             return Response({"error": "Simulation request not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        
+class GetStatusView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, guid):
+        # Placeholder for logic to get statuses
+        # This view will query the sqlite3 database to get statuses for realizations for the given GUID
+        # A background thread will continuously be checking SLURM jobs via squeue to update statuses on 5 to 10 second intervals
+        requestList = [
+            {
+                "guid": "abc",
+                "rid": 0,
+                "timestamp": datetime.datetime.utcnow(),
+                "status": "PENDING"
+            },
+            {
+                "guid": "abc",
+                "rid": 1,
+                "timestamp": datetime.datetime.utcnow(),
+                "status": "PROCESSING"
+            },
+            {
+                "guid": "abc",
+                "rid": 2,
+                "timestamp": datetime.datetime.utcnow(),
+                "status": "COMPLETE"
+            },      
+            {
+                "guid": "abc",
+                "rid": 3,
+                "timestamp": datetime.datetime.utcnow(),
+                "status": "COMPLETE"
+            },  
+            {
+                "guid": "abc",
+                "rid": 4,
+                "timestamp": datetime.datetime.utcnow(),
+                "status": "ERROR"
+            },  
+        ]
+        return JsonResponse({'statuses': requestList})
+
+class CancelRealizationGUIDView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, guid):
+        # Placeholder for the logic to delete/Cancel a realization request 
+        # This will check all job_ids for the given guid and cancel any job_ids that are still running
+        # Will return 404 if guid does not exist
+        return HttpResponse('Deleted', status=200)
+
+class CancelRealizationGUIDRIDView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, guid, rid):
+        # Placeholder for the logic to delete/Cancel a realization request 
+        # This will get the job_id for the guid,rid tuple and cancel it if it is still running. 
+        # Will return 404 if guid,rid tuple does not exist
+        return HttpResponse('Deleted', status=200)
