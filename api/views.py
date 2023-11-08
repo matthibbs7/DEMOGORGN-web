@@ -165,7 +165,7 @@ class CreateSimulationView(APIView):
 
         #     print(serializer.data)
         #     print("TEST POST backend")
-        return Response(serializer.initial_data)
+        return Response({"guid":guid})
     
 class SimulationImageEndpoint(APIView):
     # Ensure only authenticated users can access this view
