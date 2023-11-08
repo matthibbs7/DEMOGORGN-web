@@ -241,7 +241,9 @@ class GetStatusView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, guid):
-        # Placeholder for your logic to get the status
+        # Placeholder for logic to get statuses
+        # This view will query the sqlite3 database to get statuses for realizations for the given GUID
+        # A background thread will continuously be checking SLURM jobs via squeue to update statuses on 5 to 10 second intervals
         requestList = [
             {
                 "guid": "abc",
@@ -280,12 +282,16 @@ class CancelRealizationGUIDView(APIView):
     permission_classes = [IsAuthenticated]
 
     def delete(self, request, guid):
-        # Placeholder for your logic to cancel the realization based on GUID
+        # Placeholder for the logic to delete/Cancel a realization request 
+        # This will check all job_ids for the given guid and cancel any job_ids that are still running
+        # Will return 404 if guid does not exist
         return HttpResponse('Deleted', status=200)
 
 class CancelRealizationGUIDRIDView(APIView):
     permission_classes = [IsAuthenticated]
 
     def delete(self, request, guid, rid):
-        # Placeholder for your logic to cancel the realization based on GUID and RID
+        # Placeholder for the logic to delete/Cancel a realization request 
+        # This will get the job_id for the guid,rid tuple and cancel it if it is still running. 
+        # Will return 404 if guid,rid tuple does not exist
         return HttpResponse('Deleted', status=200)
