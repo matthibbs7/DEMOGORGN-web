@@ -16,7 +16,7 @@ const SimulateCard = () => {
     
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     // TODO
-    const [requestSent, setRequestSent] = useState(true)
+    const [requestSent, setRequestSent] = useState(false)
     const [csrf, setCsrf] = useState("");
 
     useEffect(() => {
