@@ -191,3 +191,11 @@ LOGGING = {
 }
 
 CORS_ALLOW_CREDENTIALS = True
+
+
+DEV_MODE = False
+if os.environ.get('DEV_MODE'):
+    print("WARNING !!! Running in development mode! Simulations will be run on the webserver.")
+    DEV_MODE = True
+else: 
+    print("Running in production mode. All simulations will be done via SLURM jobs to hipergator.")

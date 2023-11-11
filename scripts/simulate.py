@@ -11,7 +11,7 @@ import sgs_plts
 import numpy as np
 import pandas as pd
 from pathlib import Path
-
+import sqlite3
 
 
 
@@ -33,7 +33,27 @@ def plt_graph(sim, df_bed, res, x, y, z, filename):
     plot_i.savefig(filename, bbox_inches = 'tight')
     
 
-def simulate(xmin: float, xmax: float, ymin: float, ymax : float, res: int, num_realizations: int, guid: str, datafile: str, output_dir: str, num_cpus: int):
+
+def updateRealizationRecord(guid: str, rid: int , status: str, dbfile: str):
+    
+    SQL = "UPDATE realization_statuses SET status = ?, last_update = CURRENT_TIMESTAMP WHERE guid = ? AND rid = ?"
+    with sqlite3.connect(dbfile) as conn:
+        cursor = conn.cursor()
+        cursor.execute(SQL,(status,guid,rid))
+        conn.commit()
+
+def getRealizationStatus(guid: str, rid: int , dbfile: str):
+    
+    SQL = "select status from realization_statuses WHERE guid = ? AND rid = ?"
+    with sqlite3.connect(dbfile) as conn:
+        cursor = conn.cursor()
+        record = cursor.execute(SQL,(guid,rid)).fetchone()
+        if record is None:
+            return "No record found"
+        return record[0]
+
+
+def simulate(xmin: float, xmax: float, ymin: float, ymax : float, res: int, num_realizations: int, guid: str, datafile: str, output_dir: str, num_cpus: int, dbfile: str):
     """
     Performs Sequential Gaussian co-simulation (Co-SGS) on a section of Greenland topography.
 
@@ -99,40 +119,51 @@ def simulate(xmin: float, xmax: float, ymin: float, ymax : float, res: int, num_
     gamma = sgs_preprocess.get_variograms(df_data, n_lags, max_lag, processes)
     
 
+        
     for i in range(num_realizations):
+        try:
+            if getRealizationStatus(guid,i,dbfile) in ['CANCELLED']:
+                print(f"Realization {guid}/{i} has been marked as cancelled, skipping it...")
+                continue
+            
+            print(f'-----------------------------------------')
+            print(f'\tStarting Realization #{i+1}\n')
+            updateRealizationRecord(guid,i,'RUNNING',dbfile)
 
-        print(f'-----------------------------------------')
-        print(f'\tStarting Realization #{i+1}\n')
 
+            # shuffle df of points to simulate (random path)
+            df_nan = sgs_preprocess.shuffle_pred_grid(df_nan)
+
+            # get kriging weights in parallel
+            max_num_nn = 50     # maximum number of nearest neighbors
+            rad = 30000         # search radius
+            kr_dictionary = sgs_alg.kriging_weights(df_data, df_nan, gamma, rad, max_num_nn, res, processes, x, y, 'Norm_Bed', 'cluster')
+
+            # sequential gausian simulation
+            data_xyzk, pred_xyzk = sgs_alg.sgs_pred_Z(kr_dictionary, df_data, df_nan, gamma, x, y, 'Norm_Bed', 'cluster')
+
+            # concatenate data frames
+            df_sim = sgs_alg.concat(data_xyzk, pred_xyzk)
+
+            #reverse normal score transformation
+            tmp = df_sim['Norm_Bed'].values.reshape(-1,1)
+            df_sim[z] = nst_trans.inverse_transform(tmp)
+
+            # save dataframe to csv
+            csv_path = Path(f'{output_dir}/{guid}/{i}/sim.csv')
+            csv_path.parent.mkdir(parents=True, exist_ok=True)
+            df_sim.to_csv(csv_path, index=False)
+
+            # output graph
+            plot_path = Path(f'{output_dir}/{guid}/{i}/plot.png')
+            #sgs_plts.plt_graph(df_sim, df_bed, res, x, y, z, i)
+            plt_graph(df_sim, df_bed, res, x, y, z, plot_path)
+            updateRealizationRecord(guid,i,'COMPLETE',dbfile)
+        except Exception as e:
+            updateRealizationRecord(guid,i,'ERROR',dbfile)
+            print(f"Ran into error: {e} on realization {guid}/{i}")
         
-        # shuffle df of points to simulate (random path)
-        df_nan = sgs_preprocess.shuffle_pred_grid(df_nan)
-    
-        # get kriging weights in parallel
-        max_num_nn = 50     # maximum number of nearest neighbors
-        rad = 30000         # search radius
-        kr_dictionary = sgs_alg.kriging_weights(df_data, df_nan, gamma, rad, max_num_nn, res, processes, x, y, 'Norm_Bed', 'cluster')
-    
-        # sequential gausian simulation
-        data_xyzk, pred_xyzk = sgs_alg.sgs_pred_Z(kr_dictionary, df_data, df_nan, gamma, x, y, 'Norm_Bed', 'cluster')
-    
-        # concatenate data frames
-        df_sim = sgs_alg.concat(data_xyzk, pred_xyzk)
 
-        #reverse normal score transformation
-        tmp = df_sim['Norm_Bed'].values.reshape(-1,1)
-        df_sim[z] = nst_trans.inverse_transform(tmp)
-
-        # save dataframe to csv
-        csv_path = Path(f'{output_dir}/{guid}/{i}/sim.csv')
-        csv_path.parent.mkdir(parents=True, exist_ok=True)
-        df_sim.to_csv(csv_path, index=False)
-        
-        # output graph
-        plot_path = Path(f'{output_dir}/{guid}/{i}/plot.png')
-        #sgs_plts.plt_graph(df_sim, df_bed, res, x, y, z, i)
-        plt_graph(df_sim, df_bed, res, x, y, z, plot_path)
-        
 if __name__ == "__main__":
     
     parser = argparse.ArgumentParser(description='Perform Sequential Gaussian co-simulation (Co-SGS) on a section of Greenland topography.')
@@ -148,9 +179,10 @@ if __name__ == "__main__":
     parser.add_argument('--datafile', type=str, required=True, help='Datafile to use for the simulation')
     parser.add_argument('--output_dir', type=str, required=True, help='Absolute path for ouput directory')
     parser.add_argument('--num_cpus', type=int, required=False,default = None, help='Number of CPUs to use when creating the simulation.')
+    parser.add_argument('--dbfile', type=str, required=True,default = None, help='SQLITE3 database file.')
 
     # Parse arguments
     args = parser.parse_args()
 
     # Call the simulate function with the parsed arguments
-    simulate(args.xmin, args.xmax, args.ymin, args.ymax, args.res, args.num_realizations, args.guid,args.datafile,args.output_dir,args.num_cpus)
+    simulate(args.xmin, args.xmax, args.ymin, args.ymax, args.res, args.num_realizations, args.guid,args.datafile,args.output_dir,args.num_cpus,args.dbfile)

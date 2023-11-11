@@ -2,12 +2,14 @@ from django.shortcuts import render
 from rest_framework import generics, status
 from .serializers import requestSerializer
 from .models import SimulationRequest
+from .models import RealizationsStatuses
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.contrib.auth.models import User
 import time
 import uuid 
 from django.http import HttpResponse
+from django.utils import timezone
 # ---write endpoints here---
 
 ### authentication endpoints ###
@@ -36,7 +38,9 @@ SITE_ROOT = os.path.dirname(os.path.realpath(__file__))
 import logging
 
 logger = logging.getLogger(__name__)
-#logger.info(f"CORS_ALLOW_ALL_ORIGINS: {settings.CORS_ALLOW_ALL_ORIGINS}")
+
+from django.conf import settings
+import subprocess
 
 class ListUserSimulationsView(APIView):
     # Ensure only authenticated users can access this view
@@ -137,34 +141,39 @@ class CreateSimulationView(APIView):
         
         guid = str(uuid.uuid4())
   
-        print("received this email request", email)
+        print(f"Starting simulation {guid}")
         # TODO: Hard coding K and Rad values for now - figure out long term solution
         #k = 100
         #rad = 50000
-        
-        #statUtil.cosim_mm1(minx=minx,maxx=maxx,miny=miny,maxy=maxy,res=cellSize,sim_num=realizations,k=k,rad=rad)
-        demogorgn_backend.simulate(None,None,None,None,cellSize,realizations,guid)
         req = SimulationRequest(user=user, maxx=maxx, maxy=maxy, minx=minx, miny=miny, cellSize=cellSize, realizations=realizations, email=email, guid=guid)
         req.save()
+        for x in range(0,realizations):
+            realization = RealizationsStatuses(guid = req,status= "PENDING", last_update = timezone.now(), rid = x)
+            realization.save()
+        #TODO Make this OS call with the appropriate flags, but only when running in devmode 
+        #python3 ./scripts/simulate.py --output_dir ./api/output --datafile ./api/data/PIG_data.csv --guid e388f593-9c7d-4dc1-a45c-052e0f54374d --res 200 --num_realizations 2 --num_cpus 12 --dbfile ./db.sqlite3
+        script_path = os.path.join(settings.BASE_DIR,'scripts','simulate.py')
+        output_path = os.path.join(settings.BASE_DIR,'api','output')
+        command_log_path = os.path.join(settings.BASE_DIR,'api','output',guid,'output.log')
+        datafile_path = os.path.join(settings.BASE_DIR,'api','data','PIG_DATA.csv')
+        dbfile_path = os.path.join(settings.BASE_DIR,'db.sqlite3') 
+        
+        os.makedirs(os.path.join(settings.BASE_DIR,'api','output',guid))
+        if settings.DEV_MODE:
+            command = ["python3",script_path,"--output_dir",output_path,"--datafile",datafile_path,"--guid",guid,"--res",str(cellSize),"--num_realizations",str(realizations), "--num_cpus",str(os.cpu_count()),"--dbfile",dbfile_path  ]
+            with open(command_log_path,'w') as out_file:
+                process = subprocess.Popen(command, stdout=out_file, stderr=out_file, text=True)
+        else:
+            pass
+            
+            
+            
+        #python3 ./scripts/simulate.py --output_dir ./api/output --datafile ./api/data/PIG_data.csv --guid e388f593-9c7d-4dc1-a45c-052e0f54374d --res 200 --num_realizations 2 --num_cpus 12 --dbfile ./db.sqlite3
+        #statUtil.cosim_mm1(minx=minx,maxx=maxx,miny=miny,maxy=maxy,res=cellSize,sim_num=realizations,k=k,rad=rad)
+        #demogorgn_backend.simulate(None,None,None,None,cellSize,realizations,guid)
 
-        # TODO SETUP USER so THIS PASSES
-        # if serializer.is_valid():
-        #     maxx = serializer.data['maxx']
-        #     maxy = serializer.data['maxy']
-        #     minx = serializer.data['minx']
-        #     miny = serializer.data['miny']
-        #     cellSize = serializer.data['cellSize']
-        #     realizations = serializer.data['realizations']
-        #     email = serializer.data['email']
 
-        #     # currently hardcoded user TODO
-        #     user = User.objects.get(id=1)
-        #     # saves current request into db
-        #     req = SimulationRequest(user=user, maxx=maxx, maxy=maxy, minx=minx, miny=miny, cellSize=cellSize, realizations=realizations, email=email)
-        #     req.save()
 
-        #     print(serializer.data)
-        #     print("TEST POST backend")
         return Response({"guid":guid})
     
 class SimulationImageEndpoint(APIView):
@@ -174,7 +183,7 @@ class SimulationImageEndpoint(APIView):
     def get(self, request, guid, realization):
         try:
             # Query for the SimulationRequest object with the provided GUID for the authenticated user
-            simulation_request = SimulationRequest.objects.get(user=request.user, guid=guid)
+            simulation_request = SimulationRequest.objects.get(guid=guid)
             
             maxRealization = simulation_request.realizations-1
             
@@ -209,7 +218,7 @@ class SimulationCSVEndpoint(APIView):
     def get(self, request, guid, realization):
         try:
             # Query for the SimulationRequest object with the provided GUID for the authenticated user
-            simulation_request = SimulationRequest.objects.get(user=request.user, guid=guid)
+            simulation_request = SimulationRequest.objects.get(guid=guid)
             
             maxRealization = simulation_request.realizations-1
             
@@ -241,57 +250,61 @@ class GetStatusView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, guid):
-        # Placeholder for logic to get statuses
-        # This view will query the sqlite3 database to get statuses for realizations for the given GUID
-        # A background thread will continuously be checking SLURM jobs via squeue to update statuses on 5 to 10 second intervals
-        requestList = [
-            {
-                "guid": "abc",
-                "rid": 0,
-                "timestamp": datetime.datetime.utcnow(),
-                "status": "PENDING"
-            },
-            {
-                "guid": "abc",
-                "rid": 1,
-                "timestamp": datetime.datetime.utcnow(),
-                "status": "PROCESSING"
-            },
-            {
-                "guid": "abc",
-                "rid": 2,
-                "timestamp": datetime.datetime.utcnow(),
-                "status": "COMPLETE"
-            },      
-            {
-                "guid": "abc",
-                "rid": 3,
-                "timestamp": datetime.datetime.utcnow(),
-                "status": "COMPLETE"
-            },  
-            {
-                "guid": "abc",
-                "rid": 4,
-                "timestamp": datetime.datetime.utcnow(),
-                "status": "ERROR"
-            },  
-        ]
-        return JsonResponse({'statuses': requestList})
+        # Query the RealizationsStatuses model for records matching the given guid
+        statuses = RealizationsStatuses.objects.filter(guid=guid)
+
+        # Construct the response list
+        response_list = []
+        for status in statuses:
+            response_list.append({
+                "guid": guid,  
+                "rid": status.rid,
+                "timestamp": timezone.localtime(status.last_update).isoformat(),  # Format as ISO 8601 string
+                "status": status.status
+            })
+
+        # Return the JsonResponse
+        return JsonResponse({'statuses': response_list})
 
 class CancelRealizationGUIDView(APIView):
     permission_classes = [IsAuthenticated]
 
     def delete(self, request, guid):
-        # Placeholder for the logic to delete/Cancel a realization request 
-        # This will check all job_ids for the given guid and cancel any job_ids that are still running
-        # Will return 404 if guid does not exist
-        return HttpResponse('Deleted', status=200)
+        # Retrieve all realizations with the given guid
+        realizations = RealizationsStatuses.objects.filter(guid=guid)
+
+        if not realizations.exists():
+            # If no realizations are found for the guid, return a 404 response
+            raise HttpResponse("Realization not found",status=404)
+
+        # Iterate over the realizations and update their status if applicable
+        for realization in realizations:
+            if realization.status not in ['COMPLETE', 'RUNNING','CANCELLED']:
+                realization.status = 'CANCELLED'
+                realization.last_update = timezone.now()
+                realization.save()
+
+        return HttpResponse('All applicable realizations cancelled', status=200)
 
 class CancelRealizationGUIDRIDView(APIView):
     permission_classes = [IsAuthenticated]
 
     def delete(self, request, guid, rid):
-        # Placeholder for the logic to delete/Cancel a realization request 
-        # This will get the job_id for the guid,rid tuple and cancel it if it is still running. 
-        # Will return 404 if guid,rid tuple does not exist
-        return HttpResponse('Deleted', status=200)
+        try:
+            # Retrieve the specific realization
+            realization = RealizationsStatuses.objects.get(guid=guid, rid=rid)
+
+            # Check if the status is neither 'COMPLETE' nor 'RUNNING'
+            if realization.status not in ['COMPLETE', 'RUNNING','CANCELLED']:
+                # Update the status to 'CANCELLED'
+                realization.status = 'CANCELLED'
+                realization.last_update = timezone.now()
+                realization.save()
+                return HttpResponse('Realization Cancelled', status=200)
+            else:
+                # If the realization is already 'COMPLETE' or 'RUNNING'
+                return HttpResponse('Realization cannot be cancelled', status=400)
+        
+        except RealizationsStatuses.DoesNotExist:
+            # If the guid,rid tuple does not exist, return a 404 response
+            raise HttpResponse("Realization not found",status=404)
