@@ -164,7 +164,33 @@ class CreateSimulationView(APIView):
             with open(command_log_path,'w') as out_file:
                 process = subprocess.Popen(command, stdout=out_file, stderr=out_file, text=True)
         else:
-            pass
+            
+            slurm_email_account = "kerekovskik@ufl.edu"
+            slurm_script_contents = []
+            slurm_script_contents.append("#!/bin/sh")
+            slurm_script_contents.append("#SBATCH --cpus-per-task=12")
+            slurm_script_contents.append("#SBATCH --mem=20gb")
+            slurm_script_contents.append("#SBATCH --time=00:30:00")
+            slurm_script_contents.append("#SBATCH --job-name=job_test")
+            slurm_script_contents.append("#SBATCH --mail-type=ALL")
+            slurm_script_contents.append(f"#SBATCH --mail-user={slurm_email_account}")
+            slurm_script_contents.append("#SBATCH --output=" + os.path.join(settings.BASE_DIR,'api','output',guid,'serial_%j.out') )
+            slurm_script_contents.append("pwd; hostname; date")
+            miniconda_interpreter = "/pubapps/emackie/miniconda3/envs/demogorgn_env/bin/python3"
+            command = [miniconda_interpreter,script_path,"--output_dir",output_path,"--datafile",datafile_path,"--guid",guid,"--res",str(cellSize),"--num_realizations",str(realizations), "--num_cpus",str(os.cpu_count()),"--dbfile",dbfile_path  ]
+            command_str = " ".join(command)
+            slurm_script_contents.append(command_str)
+            slurm_script_contents.append("date")
+            slurm_script_path = os.path.join(settings.BASE_DIR,'api','output',guid,'slurm_script.sh')
+            with open(slurm_script_path,"w") as slurm_script:
+                
+                for line in slurm_script_contents:
+                    slurm_script.write(line + "\n")
+
+            with open(command_log_path,'w') as out_file:
+                command = ["sbatch",slurm_script_path]
+                process = subprocess.Popen(command, stdout=out_file, stderr=out_file, text=True)
+        
             
             
             
