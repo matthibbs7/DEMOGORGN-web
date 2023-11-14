@@ -164,7 +164,7 @@ class CreateSimulationView(APIView):
             with open(command_log_path,'w') as out_file:
                 process = subprocess.Popen(command, stdout=out_file, stderr=out_file, text=True)
         else:
-            
+            # Build up an array where each element is a string representing a line from the SLURM job shell script for this request
             slurm_email_account = "kerekovskik@ufl.edu"
             slurm_script_contents = []
             slurm_script_contents.append("#!/bin/sh")
@@ -181,12 +181,14 @@ class CreateSimulationView(APIView):
             command_str = " ".join(command)
             slurm_script_contents.append(command_str)
             slurm_script_contents.append("date")
+            
+            # Loop through the array and write out the shell script
             slurm_script_path = os.path.join(settings.BASE_DIR,'api','output',guid,'slurm_script.sh')
             with open(slurm_script_path,"w") as slurm_script:
                 
                 for line in slurm_script_contents:
                     slurm_script.write(line + "\n")
-
+            # Initiate the SLURM job. The SLURM Job ID will be stored in file at location command_log_path
             with open(command_log_path,'w') as out_file:
                 command = ["sbatch",slurm_script_path]
                 process = subprocess.Popen(command, stdout=out_file, stderr=out_file, text=True)
