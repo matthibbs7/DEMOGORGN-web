@@ -2,7 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { Text, Tabs, TabList, Image, Tab, TabPanel, TabPanels, Stack, Flex, TableContainer, Table, Thead, Tr, Th, Td, Tbody, Tfoot, Button, useDisclosure, Progress, Spinner, Select } from '@chakra-ui/react'
 import { MdRefresh } from 'react-icons/md';
 import { FaRegClock, FaAngleLeft, FaAngleRight } from 'react-icons/fa'
+import { AiOutlineRollback } from 'react-icons/ai'
 import CancelModal from '../Modals/CancelModal';
+
 
 import { getBatchRequestsFromGUID, getRealizationImage, getUserSimulations } from '../../utils/utils';
 import CompletedTableRow from '../Table/CompletedTableRow';
@@ -49,7 +51,7 @@ const testCompletedData = [
 ]
 const testGUID = "3d3c7c35-9d07-467f-8dff-0fc576dd6913";
 
-const RequestsCard = ({
+const ArchivedRequestCard = ({
     requestGUID,
     requestData,
 }) => {
@@ -138,6 +140,15 @@ const RequestsCard = ({
     return (
         <Flex p="30px" w="100%" h="100%" flexDir="column">
             <CancelModal isOpen={isOpen} onClose={onClose}  />
+            <Flex w="100%">
+                <Flex px={4} py={2} bg="yellow.300" borderRadius={4}>
+                    <Text color="blackAlpha.600" fontWeight={600}>Viewing Archived Request</Text>
+                
+                </Flex>
+                <Flex align="center" ml="auto">
+                    <Text color="#0560FF">Back to current request&nbsp;</Text>
+                </Flex>
+            </Flex>
             <Text fontWeight={600} fontSize="18pt" mb={2}>Request Overview</Text>
             {/* <Text>THIS IS CURRENT GUID: {requestGUID ?? ''}{requestData.minx}</Text> */}
             <Flex align="center">
@@ -347,6 +358,31 @@ const RequestsCard = ({
                                     </Flex>
                                 )
                             })}
+                            
+
+                            <Flex border="1.5px solid #D3D3D3" flexDirection="column" bg="#F4F4F4" p={4} w="-webkit-fit-content">
+                                {/* <Text fontSize="11pt" pt={5}>Generating 300 realizations with the following inputs:</Text> */}
+                                <Flex>
+                                    <Text fontSize="11pt" fontWeight={600}>Resolution:&nbsp;</Text>
+                                    <Text fontSize="11pt">40</Text>
+                                </Flex>
+                                <Flex>
+                                    <Text fontSize="11pt" fontWeight={600}>Max X:&nbsp;</Text>
+                                    <Text fontSize="11pt">40</Text>
+                                </Flex>
+                                <Flex>
+                                    <Text fontSize="11pt" fontWeight={600}>Max Y:&nbsp;</Text>
+                                    <Text fontSize="11pt">40</Text>
+                                </Flex>
+                                <Flex>
+                                    <Text fontSize="11pt" fontWeight={600}>Min X:&nbsp;</Text>
+                                    <Text fontSize="11pt">40</Text>
+                                </Flex>
+                                <Flex>
+                                    <Text fontSize="11pt" fontWeight={600}>Min Y:&nbsp;</Text>
+                                    <Text fontSize="11pt">40</Text>
+                                </Flex>
+                            </Flex>
                         </Flex>
                     </TabPanel>
                 </TabPanels>
@@ -355,4 +391,4 @@ const RequestsCard = ({
         </Flex>
     )
 }
-export default RequestsCard;
+export default ArchivedRequestCard;
