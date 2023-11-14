@@ -155,7 +155,7 @@ class CreateSimulationView(APIView):
         script_path = os.path.join(settings.BASE_DIR,'scripts','simulate.py')
         output_path = os.path.join(settings.BASE_DIR,'api','output')
         command_log_path = os.path.join(settings.BASE_DIR,'api','output',guid,'output.log')
-        datafile_path = os.path.join(settings.BASE_DIR,'api','data','PIG_DATA.csv')
+        datafile_path = os.path.join(settings.BASE_DIR,'api','data','PIG_data.csv')
         dbfile_path = os.path.join(settings.BASE_DIR,'db.sqlite3') 
         
         os.makedirs(os.path.join(settings.BASE_DIR,'api','output',guid))
