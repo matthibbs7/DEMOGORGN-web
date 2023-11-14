@@ -169,8 +169,8 @@ class CreateSimulationView(APIView):
             slurm_script_contents = []
             slurm_script_contents.append("#!/bin/sh")
             slurm_script_contents.append("#SBATCH --cpus-per-task=12")
-            slurm_script_contents.append("#SBATCH --mem=20gb")
-            slurm_script_contents.append("#SBATCH --time=00:30:00")
+            slurm_script_contents.append("#SBATCH --mem=10gb")
+            slurm_script_contents.append("#SBATCH --time=04:00:00")
             slurm_script_contents.append("#SBATCH --job-name=job_test")
             slurm_script_contents.append("#SBATCH --mail-type=ALL")
             slurm_script_contents.append(f"#SBATCH --mail-user={slurm_email_account}")
