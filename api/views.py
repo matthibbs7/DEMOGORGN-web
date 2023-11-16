@@ -179,7 +179,7 @@ class CreateSimulationView(APIView):
             miniconda_interpreter = "/pubapps/emackie/miniconda3/envs/demogorgn_env/bin/python3"
             datafile_path = "/pubapps/emackie/data/total_demo_gl_not_gridded.csv"
             #xmin = -652925; xmax = 879625; ymin = -3384425; ymax = -632675
-            command = [miniconda_interpreter,script_path,"--output_dir",output_path,"--datafile",datafile_path,"--guid",guid,"--res",str(cellSize),"--num_realizations",str(realizations), "--num_cpus",str(os.cpu_count()),"--dbfile",dbfile_path ,"--xmin",minx,"--xmax", maxx,"--ymin",miny,"--ymax",maxy ]
+            command = [miniconda_interpreter,script_path,"--output_dir",output_path,"--datafile",datafile_path,"--guid",guid,"--res",str(cellSize),"--num_realizations",str(realizations), "--num_cpus",str(os.cpu_count()),"--dbfile",dbfile_path ,"--xmin",str(minx),"--xmax", str(maxx),"--ymin",str(miny),"--ymax",str(maxy) ]
             command_str = " ".join(command)
             slurm_script_contents.append(command_str)
             slurm_script_contents.append("date")
