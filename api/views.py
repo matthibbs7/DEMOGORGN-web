@@ -169,15 +169,17 @@ class CreateSimulationView(APIView):
             slurm_script_contents = []
             slurm_script_contents.append("#!/bin/sh")
             slurm_script_contents.append("#SBATCH --cpus-per-task=12")
-            slurm_script_contents.append("#SBATCH --mem=10gb")
+            slurm_script_contents.append("#SBATCH --mem=120gb")
             slurm_script_contents.append("#SBATCH --time=04:00:00")
-            slurm_script_contents.append("#SBATCH --job-name=job_test")
+            slurm_script_contents.append(f"#SBATCH --job-name=gsim_{guid}")
             slurm_script_contents.append("#SBATCH --mail-type=ALL")
             slurm_script_contents.append(f"#SBATCH --mail-user={slurm_email_account}")
             slurm_script_contents.append("#SBATCH --output=" + os.path.join(settings.BASE_DIR,'api','output',guid,'serial_%j.out') )
             slurm_script_contents.append("pwd; hostname; date")
             miniconda_interpreter = "/pubapps/emackie/miniconda3/envs/demogorgn_env/bin/python3"
-            command = [miniconda_interpreter,script_path,"--output_dir",output_path,"--datafile",datafile_path,"--guid",guid,"--res",str(cellSize),"--num_realizations",str(realizations), "--num_cpus",str(os.cpu_count()),"--dbfile",dbfile_path  ]
+            datafile_path = "/pubapps/emackie/data/total_demo_gl_not_gridded.csv"
+            #xmin = -652925; xmax = 879625; ymin = -3384425; ymax = -632675
+            command = [miniconda_interpreter,script_path,"--output_dir",output_path,"--datafile",datafile_path,"--guid",guid,"--res",str(cellSize),"--num_realizations",str(realizations), "--num_cpus",str(os.cpu_count()),"--dbfile",dbfile_path ,"--xmin",minx,"--xmax", maxx,"--ymin",miny,"--ymax",maxy ]
             command_str = " ".join(command)
             slurm_script_contents.append(command_str)
             slurm_script_contents.append("date")
