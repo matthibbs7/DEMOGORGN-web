@@ -309,7 +309,7 @@ class CancelRealizationGUIDView(APIView):
 
         # Iterate over the realizations and update their status if applicable
         for realization in realizations:
-            if realization.status not in ['COMPLETE', 'RUNNING','CANCELLED']:
+            if realization.status not in ['COMPLETE','CANCELLED']:
                 realization.status = 'CANCELLED'
                 realization.last_update = timezone.now()
                 realization.save()
@@ -324,15 +324,15 @@ class CancelRealizationGUIDRIDView(APIView):
             # Retrieve the specific realization
             realization = RealizationsStatuses.objects.get(guid=guid, rid=rid)
 
-            # Check if the status is neither 'COMPLETE' nor 'RUNNING'
-            if realization.status not in ['COMPLETE', 'RUNNING','CANCELLED']:
+            # Check if the status is neither 'COMPLETE' nor already 'CANCELLED'
+            if realization.status not in ['COMPLETE', 'CANCELLED']:
                 # Update the status to 'CANCELLED'
                 realization.status = 'CANCELLED'
                 realization.last_update = timezone.now()
                 realization.save()
                 return HttpResponse('Realization Cancelled', status=200)
             else:
-                # If the realization is already 'COMPLETE' or 'RUNNING'
+                # If the realization is already 'COMPLETE' 
                 return HttpResponse('Realization cannot be cancelled', status=400)
         
         except RealizationsStatuses.DoesNotExist:
