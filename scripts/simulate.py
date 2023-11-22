@@ -13,8 +13,27 @@ import pandas as pd
 from pathlib import Path
 import sqlite3
 
+import multiprocessing
+import signal
+import time
 
+# Custom exception for handling signal interruption
+class SimulationInterrupted(Exception):
+    pass
 
+# Signal handler function
+def signal_handler(signum, frame):
+    raise SimulationInterrupted
+
+def monitor_status(guid,rid, main_process_pid, dbfile):
+    while True:
+        status = getRealizationStatus(guid,rid, dbfile)
+        if status == 'CANCELLED':
+            os.kill(main_process_pid, signal.SIGUSR1)
+            break
+        elif status in ['COMPLETE', 'ERROR']:
+            break  # Exit the process if the realization is complete
+        time.sleep(10)
 
 def plt_graph(sim, df_bed, res, x, y, z, filename):
 
@@ -89,6 +108,9 @@ def simulate(xmin: float, xmax: float, ymin: float, ymax : float, res: int, num_
     TODO
     """
     
+    for i in range(num_realizations):
+        updateRealizationRecord(guid,i,'PENDING',dbfile) # Set all realizations to pending. 
+            
     #xmin = None; xmax = None; ymin = None ; ymax = None ## Plot entire datafile TODO: Remove when done testing
     x = "X"; y = "Y"; z = "BED" # Column headings in CSV data files
     
@@ -119,12 +141,20 @@ def simulate(xmin: float, xmax: float, ymin: float, ymax : float, res: int, num_
     gamma = sgs_preprocess.get_variograms(df_data, n_lags, max_lag, processes)
     
 
-        
     for i in range(num_realizations):
+        
+        # Start monitoring process
+        monitor_process = multiprocessing.Process(target=monitor_status, args=(guid,i, os.getpid(), dbfile))
+        
+        
         try:
+            monitor_process.start()
             if getRealizationStatus(guid,i,dbfile) in ['CANCELLED']:
                 print(f"Realization {guid}/{i} has been marked as cancelled, skipping it...")
                 continue
+            
+
+            
             
             print(f'-----------------------------------------')
             print(f'\tStarting Realization #{i+1}\n')
@@ -159,12 +189,26 @@ def simulate(xmin: float, xmax: float, ymin: float, ymax : float, res: int, num_
             #sgs_plts.plt_graph(df_sim, df_bed, res, x, y, z, i)
             plt_graph(df_sim, df_bed, res, x, y, z, plot_path)
             updateRealizationRecord(guid,i,'COMPLETE',dbfile)
+        except SimulationInterrupted:
+            print(f"Realization {i} has been cancelled by the user. Stopping the current realization...")
+            continue
         except Exception as e:
             updateRealizationRecord(guid,i,'ERROR',dbfile)
             print(f"Ran into error: {e} on realization {guid}/{i}")
+        finally:
+            # Ensure the monitor process is terminated and joined
+            if monitor_process.is_alive():
+                try:
+                    monitor_process.terminate()
+                except:
+                    pass
+                monitor_process.join()
         
 
 if __name__ == "__main__":
+    
+    # Set up signal handling in the main process
+    signal.signal(signal.SIGUSR1, signal_handler)
     
     parser = argparse.ArgumentParser(description='Perform Sequential Gaussian co-simulation (Co-SGS) on a section of Greenland topography.')
 
