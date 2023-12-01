@@ -34,6 +34,8 @@ ALLOWED_HOSTS=['*']
 
 CUSTOM_CORS_ORIGINS = [
     'http://localhost:8000',  # Add your other origins here as needed
+    'https://devdemogorgn.rc.ufl.edu',
+    'https://demogorgn.rc.ufl.edu'
 ]
 
 CORS_ALLOWED_ORIGINS = CUSTOM_CORS_ORIGINS
