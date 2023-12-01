@@ -177,7 +177,7 @@ class CreateSimulationView(APIView):
             slurm_script_contents.append("#SBATCH --output=" + os.path.join(settings.BASE_DIR,'api','output',guid,'serial_%j.out') )
             slurm_script_contents.append("pwd; hostname; date")
             miniconda_interpreter = "/pubapps/emackie/miniconda3/envs/demogorgn_env/bin/python3"
-            datafile_path = "/pubapps/emackie/data/total_demo_gl_not_gridded.csv"
+            #datafile_path = "/pubapps/emackie/data/total_demo_gl_not_gridded.csv" # TODO: Uncomment when the issue with running large simulations is fixed.
             #xmin = -652925; xmax = 879625; ymin = -3384425; ymax = -632675
             command = [miniconda_interpreter,script_path,"--output_dir",output_path,"--datafile",datafile_path,"--guid",guid,"--res",str(cellSize),"--num_realizations",str(realizations), "--num_cpus",str(os.cpu_count()),"--dbfile",dbfile_path ,"--xmin",str(minx),"--xmax", str(maxx),"--ymin",str(miny),"--ymax",str(maxy) ]
             command_str = " ".join(command)
@@ -338,3 +338,20 @@ class CancelRealizationGUIDRIDView(APIView):
         except RealizationsStatuses.DoesNotExist:
             # If the guid,rid tuple does not exist, return a 404 response
             raise HttpResponse("Realization not found",status=404)
+
+class LookupRequestView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, guid):
+        #guid = request.query_params.get('guid')
+        print(f"Getting info for guid {guid}")
+        if not guid:
+            return Response({"error": "GUID parameter is required."}, status=400)
+
+        try:
+            simulation_request = SimulationRequest.objects.get(guid=guid)
+        except SimulationRequest.DoesNotExist:
+            return Response({"error": "Simulation request not found."}, status=404)
+
+        serializer = requestSerializer(simulation_request)
+        return Response(serializer.data)

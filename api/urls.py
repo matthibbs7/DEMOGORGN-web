@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import listView, requestView, CreateSimulationView, RegisterView, ListUserSimulationsView, SimulationImageEndpoint, SimulationCSVEndpoint
+from .views import listView, requestView, CreateSimulationView, RegisterView, ListUserSimulationsView, SimulationImageEndpoint, SimulationCSVEndpoint, LookupRequestView
 from . import views
 # if we get blank url, call main function
 
@@ -20,4 +20,5 @@ urlpatterns = [
     path('get_status/<str:guid>/', views.GetStatusView.as_view(), name='get_status'),
     path('cancel_realization/<str:guid>/', views.CancelRealizationGUIDView.as_view(), name='cancel_realization_guid'),
     path('cancel_realization/<str:guid>/<int:rid>/', views.CancelRealizationGUIDRIDView.as_view(), name='cancel_realization_guid_rid'),
+    path('lookup_request/<str:guid>/', LookupRequestView.as_view(), name='lookup_request'),
 ]
