@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Flex, Text, Link, Menu, MenuButton, MenuList, Box, MenuItem } from '@chakra-ui/react';
+import { Button, Divider, Flex, Text, Link, Menu, MenuButton, MenuList, Box, MenuItem } from '@chakra-ui/react';
 import { IoPersonOutline } from 'react-icons/io5'
 import toast from 'react-hot-toast';
 import "@fontsource/ibm-plex-sans";
@@ -7,11 +7,6 @@ import "@fontsource/ibm-plex-sans";
 const SelectorBar = () => {
     const [active, setActive] = useState('/')
     const [username, setUsername] = useState('')
-    // const router = useRouter()
-
-    // useEffect(() => {
-    //     setActive(router.pathname)
-    // }, [router.pathname]);
 
     const whoami = () => {
         fetch("/api/whoami/", {
@@ -23,7 +18,6 @@ const SelectorBar = () => {
         .then((res) => res.json())
         .then((data) => {
             setUsername(data.username)
-            console.log("You are logged in as: " + data.username + data.email);
         })
         .catch((err) => {
             console.log(err);
@@ -43,7 +37,6 @@ const SelectorBar = () => {
         })
         .then((res) => res.json())
         .then((data) => {
-            console.log("session data:", data);
             if (data.isAuthenticated) {
                 whoami();
                 setIsAuthenticated(true);
@@ -125,8 +118,10 @@ const SelectorBar = () => {
                         </MenuButton>
                         {isAuthenticated ? 
                             <MenuList zIndex={1000} pt={0} pb={0} minW="0" w="160px" border="2px solid lightgrey" bg="white" borderRadius="0px">
-                                    <MenuItem onClick={event =>  window.location.href='/profile'} pl="20px" _focus={{}} _hover={{bg: "#0E61FE", color: 'white', cursor: 'pointer'}} color="black">Profile</MenuItem>
-                                    <MenuItem onClick={()=>logout()} pl="20px" _hover={{bg: "#0E61FE", color: 'white', cursor: 'pointer'}} color="black">Logout</MenuItem>
+                                    <MenuItem onClick={() => window.location.href='/profile'} pl="20px" _focus={{}} _hover={{bg: "#0E61FE", color: 'white', cursor: 'pointer'}} color="black">Profile</MenuItem>
+                                    <MenuItem onClick={() => window.location.href='/history'} pl="20px" _hover={{bg: "#0E61FE", color: 'white', cursor: 'pointer'}} color="black">History</MenuItem>
+                                    <Divider />
+                                    <MenuItem onClick={() => logout()} pl="20px" _hover={{bg: "#0E61FE", color: 'white', cursor: 'pointer'}} color="black">Logout</MenuItem>
                             </MenuList>
                         :
                             <MenuList zIndex={1000} pt={0} pb={0} minW="0" w="160px" border="2px solid lightgrey" bg="white" borderRadius="0px">

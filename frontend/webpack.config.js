@@ -8,6 +8,7 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, "./static/frontend"),
     filename: "[name].js",
+    publicPath: '/',
   },
   module: {
     rules: [
@@ -64,7 +65,7 @@ module.exports = {
     open: true, // This will open the browser automatically
     hot: true,
     proxy: {
-      '/api': 'http://localhost:8000', // Proxy API requests to Django backend server
+      '/api': 'http://127.0.0.1:8000', // Proxy API requests to Django backend server
     },
   },
 };
