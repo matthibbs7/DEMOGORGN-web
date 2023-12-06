@@ -17,6 +17,10 @@ import multiprocessing
 import signal
 import time
 
+from datetime import datetime
+
+def logPrint(message):
+    print(f"{datetime.now()} | {message}")
 # Custom exception for handling signal interruption
 class SimulationInterrupted(Exception):
     pass
@@ -35,7 +39,7 @@ def monitor_status(guid,rid, main_process_pid, dbfile):
             break  # Exit the process if the realization is complete
         time.sleep(10)
 
-def plt_graph(sim, df_bed, res, x, y, z, filename):
+def plt_graph(sim, df_bed, res, x, y, z, filename,xmin,xmax,ymin,ymax):
 
     # 2D hillshade topographic plot
     title = f'Bed Elevation Model'
@@ -43,8 +47,8 @@ def plt_graph(sim, df_bed, res, x, y, z, filename):
     mu = np.mean(sim[z]); sd = np.std(sim[z])
     vmin = mu - 3*sd ; vmax = mu + 3*sd
 
-    xmin = np.min(df_bed[x]); xmax = np.max(df_bed[x])
-    ymin = np.min(df_bed[y]); ymax = np.max(df_bed[y])
+    #xmin = np.min(df_bed[x]); xmax = np.max(df_bed[x])
+    #ymin = np.min(df_bed[y]); ymax = np.max(df_bed[y])
 
     grid_xy, rows, cols = sgs_plts.prediction_grid(xmin, xmax, ymin, ymax, res)
     
@@ -130,7 +134,7 @@ def simulate(xmin: float, xmax: float, ymin: float, ymax : float, res: int, num_
     
     # get number of processes to use
     if num_cpus is None:
-        print("No CPU count was specified, program will run on all cores available.")
+        logPrint("No CPU count was specified, program will run on all cores available.")
         processes = int(os.cpu_count())
     else: 
         processes = num_cpus
@@ -150,14 +154,14 @@ def simulate(xmin: float, xmax: float, ymin: float, ymax : float, res: int, num_
         try:
             monitor_process.start()
             if getRealizationStatus(guid,i,dbfile) in ['CANCELLED']:
-                print(f"Realization {guid}/{i} has been marked as cancelled, skipping it...")
+                logPrint(f"Realization {guid}/{i} has been marked as cancelled, skipping it...")
                 continue
             
 
             
             
-            print(f'-----------------------------------------')
-            print(f'\tStarting Realization #{i+1}\n')
+            logPrint(f'-----------------------------------------')
+            logPrint(f'\tStarting Realization #{i+1}\n')
             updateRealizationRecord(guid,i,'RUNNING',dbfile)
 
 
@@ -182,19 +186,26 @@ def simulate(xmin: float, xmax: float, ymin: float, ymax : float, res: int, num_
             # save dataframe to csv
             csv_path = Path(f'{output_dir}/{guid}/{i}/sim.csv')
             csv_path.parent.mkdir(parents=True, exist_ok=True)
+            logPrint(f"Storing CSV in file {csv_path}")
             df_sim.to_csv(csv_path, index=False)
 
             # output graph
             plot_path = Path(f'{output_dir}/{guid}/{i}/plot.png')
             #sgs_plts.plt_graph(df_sim, df_bed, res, x, y, z, i)
-            plt_graph(df_sim, df_bed, res, x, y, z, plot_path)
+            try:
+                logPrint(f"Storing PNG in file {plot_path}")
+                plt_graph(df_sim, df_bed, res, x, y, z, plot_path,xmin,xmax,ymin,ymax)
+            except Exception as e: 
+                logPrint(f"### Problem creating graph {e} !!! ")
+                raise e
+                
             updateRealizationRecord(guid,i,'COMPLETE',dbfile)
         except SimulationInterrupted:
-            print(f"Realization {i} has been cancelled by the user. Stopping the current realization...")
+            logPrint(f"Realization {i} has been cancelled by the user. Stopping the current realization...")
             continue
         except Exception as e:
             updateRealizationRecord(guid,i,'ERROR',dbfile)
-            print(f"Ran into error: {e} on realization {guid}/{i}")
+            logPrint(f"Ran into error: {e} on realization {guid}/{i}")
         finally:
             # Ensure the monitor process is terminated and joined
             if monitor_process.is_alive():
