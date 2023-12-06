@@ -12,6 +12,8 @@ import {
 } from "@chakra-ui/react"
 
 const NavDrawer = ({
+    isAuthenticated,
+    logout,
     isOpen,
     onClose
 }) => {
@@ -28,12 +30,25 @@ const NavDrawer = ({
                 <DrawerBody>
                     <Flex mt={5} flexDirection="column" mb="auto">
                         <Text fontSize="16pt" fontWeight={600}>Account</Text>
-                        <Flex onClick={() => window.location.href='/auth2'} mt={2} _hover={{background: "#f5f5f5", cursor: "pointer"}} py={2} px={3} borderRadius={5}>
-                            <Text fontSize="14pt">Log In</Text>
-                        </Flex>
-                        <Flex _hover={{background: "#f5f5f5", cursor: "pointer"}} py={2} px={3} borderRadius={5}>
-                            <Text fontSize="14pt">Sign Up</Text>
-                        </Flex>
+                        {isAuthenticated ? (
+                            <>
+                                <Flex onClick={() => window.location.href='/profile'} mt={2} _hover={{background: "#f5f5f5", cursor: "pointer"}} py={2} px={3} borderRadius={5}>
+                                    <Text fontSize="14pt">Profile</Text>
+                                </Flex>
+                                <Flex onClick={() => logout()} _hover={{background: "#f5f5f5", cursor: "pointer"}} py={2} px={3} borderRadius={5}>
+                                    <Text fontSize="14pt">Log Out</Text>
+                                </Flex>
+                            </>
+                        ) : (
+                            <>
+                                <Flex onClick={() => window.location.href='/auth2'} mt={2} _hover={{background: "#f5f5f5", cursor: "pointer"}} py={2} px={3} borderRadius={5}>
+                                    <Text fontSize="14pt">Log In</Text>
+                                </Flex>
+                                <Flex _hover={{background: "#f5f5f5", cursor: "pointer"}} py={2} px={3} borderRadius={5}>
+                                    <Text fontSize="14pt">Sign Up</Text>
+                                </Flex>
+                            </>
+                        )}
                         <Text mt={10} fontSize="16pt" fontWeight={600}>Content</Text>
                         <Flex onClick={() => window.location.href='/'} mt={2} _hover={{background: "#f5f5f5", cursor: "pointer"}} py={2} px={3} borderRadius={5}>
                             <Text fontSize="14pt">Home</Text>

@@ -4,7 +4,10 @@ import { HiOutlineMenu } from "react-icons/hi";
 import { useDisclosure } from "@chakra-ui/react";
 import NavDrawer from "./Drawer";
 
-const Navbar = () => {
+const Navbar = ({
+    isAuthenticated,
+    logout,
+}) => {
     const { isOpen, onOpen, onClose } = useDisclosure();
     return (
         <>
@@ -40,7 +43,7 @@ const Navbar = () => {
                     <HiOutlineMenu fontSize='20pt' color="white" />
                 </Flex>
             </Flex>
-            <NavDrawer onClose={onClose} isOpen={isOpen} />
+            <NavDrawer isAuthenticated={isAuthenticated} logout={logout} onClose={onClose} isOpen={isOpen} />
         </>
     );
 };

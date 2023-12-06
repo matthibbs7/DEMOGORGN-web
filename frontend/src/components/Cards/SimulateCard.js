@@ -10,6 +10,7 @@ import 'leaflet/dist/leaflet.css'
 import RequestsCard from './RequestsCard';
 import { polarStereographicToLatLon, polarStereographicXToLongitude, polarStereographicYToLatitude, ll2ps, ps2ll } from '../../utils/utils';
 import ArchivedRequestCard from './ArchivedRequestCard';
+import toast from 'react-hot-toast';
 
 const SimulateCard = ({
     csrf,
@@ -102,7 +103,21 @@ const SimulateCard = ({
         const res = await whoami();
 
         // TODO Display login required error
-        if (!isAuthenticated) return;
+        if (!isAuthenticated) {
+            toast.error('You must be signed in to submit requests', {
+                style: {
+                  border: '1px solid grey',
+                  padding: '8px',
+                  color: '#0E61FE',
+                  fontWeight: 'bold',
+                  fontFamily: `"IBM Plex Sans"`,
+                },
+                iconTheme: {
+                  primary: '#ffffff',
+                  secondary: '#0E61FE',
+                },
+            });
+        };
 
         if (res.error) {
             console.log("error detected", res.error)

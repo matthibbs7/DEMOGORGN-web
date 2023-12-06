@@ -12,5 +12,6 @@ urlpatterns = [
     path('history', index),
     path(r'request.*', index),
     path('about', index),
+    path('feedback', index),
     re_path(r'.*', index),
 ]

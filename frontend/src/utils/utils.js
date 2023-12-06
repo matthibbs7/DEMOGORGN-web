@@ -83,7 +83,7 @@ export const getBatchRequestsFromGUID = async (requestGUID, csrf) => {
 }
 
 export const cancelSingleRequestFromGUID = async (requestGUID, realizationID, csrf) => {
-    const req = await fetch(`/api/${'cancel_realization'}/${requestGUID}/${realizationID}`, {
+    const req = await fetch(`/api/${'cancel_realization'}/${requestGUID}/${realizationID}/`, {
         method: 'DELETE',
         headers: { 
             'Content-Type': 'application/json', 
@@ -95,7 +95,7 @@ export const cancelSingleRequestFromGUID = async (requestGUID, realizationID, cs
 }
 
 export const cancelBatchRequestFromGUID = async (requestGUID, csrf) => {
-    const req = await fetch(`/api/${'cancel_realization'}/${requestGUID}`, {
+    const req = await fetch(`/api/${'cancel_realization'}/${requestGUID}/`, {
         method: 'DELETE',
         headers: { 
             'Content-Type': 'application/json', 

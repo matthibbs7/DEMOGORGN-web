@@ -1,6 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { authStateAtom } from '../../atoms/authAtom';
-import { useRecoilState } from 'recoil';
 import { Flex, Input, Text, Button, Box } from "@chakra-ui/react";
 import toast from 'react-hot-toast';
 import "@fontsource/ibm-plex-sans";
