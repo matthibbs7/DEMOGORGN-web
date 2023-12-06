@@ -4,65 +4,23 @@ import { useEffect, useState } from 'react';
 import {
     MapContainer,
     TileLayer,
-    useMap,
     Rectangle
   } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css'
 import RequestsCard from './RequestsCard';
-import { polarStereographicToLatLon, polarStereographicXToLongitude, polarStereographicYToLatitude } from '../../utils/utils';
+import { polarStereographicToLatLon, polarStereographicXToLongitude, polarStereographicYToLatitude, ll2ps, ps2ll } from '../../utils/utils';
 import ArchivedRequestCard from './ArchivedRequestCard';
 
-const HOST_PREFIX = process.env.HOST_PREFIX ?? 'http://127.0.0.1:8000';
-
-const SimulateCard = () => {
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
+const SimulateCard = ({
+    csrf,
+    isAuthenticated,
+}) => {
     // TODO update to FORM view
     // represents current view for /simulate page can be: ['FORM','REQUEST','ARCHIVE'];
     const [viewState, setViewState] = useState("FORM");
-
-    const [csrf, setCsrf] = useState("");
     // Response value from POST request, used to pass into RequestCard component
-    const [currentGUID, setCurrentGUID] = useState('');
-
-    useEffect(() => {
-        getSession();
-    }, [])
-
-    const getSession = () => {
-        fetch("/api/session/", {
-            credentials: "include",
-        })
-        .then((res) => res.json())
-        .then((data) => {
-            console.log("session data:", data);
-            if (data.isAuthenticated) {
-                whoami();
-                setIsAuthenticated(true);
-                getCSRF();
-                
-            } else {
-                setIsAuthenticated(false);
-                getCSRF();
-            }
-        })
-        .catch((err) => {
-            console.log(err);
-        });
-    }
-
-    const getCSRF = () => {
-        fetch("/api/csrf/", {
-            credentials: "include",
-        })
-        .then((res) => {
-            let csrfToken = res.headers.get("X-CSRFToken");
-            setCsrf(csrfToken);
-            console.log('csrf:',csrfToken);
-        })
-        .catch((err) => {
-            console.log(err);
-        });
-    }
+    //TODO DEFAULT TO NONE 
+    const [currentGUID, setCurrentGUID] = useState('70f1a90f-f34b-4441-ae08-40e0f951993f');
 
     const [loading, setLoading] = useState(false);
     const [latValues, setLatValues] = useState({
@@ -83,18 +41,29 @@ const SimulateCard = () => {
 
     // TODO speak with mickey and fix conversion
     useEffect(() => {
-        const latMaxX = polarStereographicXToLongitude(simulationForm.maxx);
-        const latMinX = polarStereographicXToLongitude(simulationForm.minx);
-        const latMaxY = polarStereographicYToLatitude(simulationForm.maxy);
-        const latMinY = polarStereographicYToLatitude(simulationForm.miny);
+        // const vals = ps2ll(
+        //     simulationForm.minx, 
+        //     simulationForm.miny, 
+        //     simulationForm.maxx, 
+        //     simulationForm.maxy
+        // );
+        // const latMaxX = polarStereographicXToLongitude(simulationForm.maxx);
+        // const latMinX = polarStereographicXToLongitude(simulationForm.minx);
+        // const latMaxY = polarStereographicYToLatitude(simulationForm.maxy);
+        // const latMinY = polarStereographicYToLatitude(simulationForm.miny);
         // const vals = polarStereographicToLatLon(simulationForm.minx, simulationForm.miny, simulationForm.maxx, simulationForm.maxy);
+        // setLatValues({
+        //     maxx: Number(vals[3]),
+        //     maxy: Number(vals[2]),
+        //     minx: Number(vals[1]),
+        //     miny: Number(vals[0])
+        // })
         setLatValues({
-            maxx: latMaxX,
-            maxy: latMaxY,
-            minx: latMinX,
-            miny: latMinY
-        })
-        // console.log(vals)
+                maxx: simulationForm.maxx,
+                maxy: simulationForm.maxy,
+                minx: simulationForm.minx,
+                miny: simulationForm.miny
+            })
     }, [simulationForm.maxx, simulationForm.maxy, simulationForm.miny, simulationForm.minx])
 
     // used for updating form input states
@@ -106,7 +75,6 @@ const SimulateCard = () => {
     };
 
     const getSimulation = async (username, email) => {
-        // `${HOST_PREFIX}/rewording`
         const request = await fetch(`/api/simulate`, {
           method: 'POST',
           headers: { 
@@ -133,31 +101,22 @@ const SimulateCard = () => {
         // obtain user email and auth state
         const res = await whoami();
 
+        // TODO Display login required error
+        if (!isAuthenticated) return;
+
         if (res.error) {
             console.log("error detected", res.error)
-
-            // not logged in? set error
-            
         } else {
             getSimulation(res.username, res.email)
             .then((response) => {
-                console.log('Sim res', response);
-                console.log('Sim guid', response.guid)
                 setCurrentGUID(response.guid);
             })
             .then(() => {
                 setLoading(false);
-                setRequestSent(true);
+                setViewState("REQUEST");
             });
         }
         return
-
-        // call backend API
-        getSimulation()
-            .then((response) => {
-            console.log(response);
-            })
-            .then(() => setLoading(false));
       };
 
 
@@ -183,7 +142,7 @@ const SimulateCard = () => {
         <>  
             <Flex bg="white" border="1px solid black" mb={10} flexDirection={['column', 'column', 'row', 'row']} flexWrap='wrap'>
                 {viewState === "REQUEST" && (
-                    <RequestsCard requestGUID={currentGUID} requestData={simulationForm} />
+                    <RequestsCard csrf={csrf} isAuthenticated={isAuthenticated} requestGUID={currentGUID} requestData={simulationForm} />
                 )}
                 {viewState === "ARCHIVE" && (
                     <ArchivedRequestCard requestGUID={currentGUID} requestData={simulationForm} />
@@ -215,7 +174,6 @@ const SimulateCard = () => {
                                     <Text color="gray.600" mb={2}># of results sent to email</Text>
                                     <Input mb={3} placeholder="# of realizations" _hover={{borderBottom: "2px solid grey"}} fontWeight={400}  onChange={onChange} name="realizations" required type="number" _active={{borderBottom: '2px solid #0E61FE'}} _focus={{boxShadow: "none", borderBottom: "2px solid #0E61FE"}} bg="#f4f4f4" border="none" mt={1} borderBottom='2px solid grey' borderRadius="0px"/>
                                     <Button _hover={{opacity: "0.9"}} fontWeight={600} isLoading={loading} type="submit" fontSize="11pt" pl="15px" bg="linear-gradient(90deg, rgba(115,109,221,1) 0%, rgba(92,162,247,1) 100%, rgba(0,212,255,1) 100%);" color="white" borderRadius={0} mt={4} width="210px" height="48px">Generate Realizations&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→</Button>
-                                    {/* <Button _hover={{bgColor: '#108bfe'}} isLoading={loading} type="submit" backgroundColor="#0E61FE" color='white'>Generate Realizations</Button> */}
                                 </form>
                                 <Link href="/methodology" mt={3}>
                                     <Text fontSize="11pt" fontWeight={600} color="#0E61FE">Read more about the Methodology →</Text>
@@ -232,7 +190,7 @@ const SimulateCard = () => {
                                 url="https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}"
                                 subdomains={['mt1','mt2','mt3']}
                             />
-                            <Rectangle bounds={[[latValues.minx, latValues.miny],[latValues.maxx, latValues.maxy]]} pathOptions={{color: '#0E61FE'}} />
+                            <Rectangle bounds={[[simulationForm.miny, simulationForm.minx],[simulationForm.maxy, simulationForm.maxx]]} pathOptions={{color: '#0E61FE'}} />
                         </MapContainer>
                         </Flex>
                     </>

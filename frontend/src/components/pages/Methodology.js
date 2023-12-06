@@ -1,8 +1,8 @@
 import React from 'react';
-import { Text, Flex } from '@chakra-ui/react'
+import { Flex } from '@chakra-ui/react'
 import MethodCard from '../Cards/MethodCard';
 
-const MethodologyPage = (props) => {
+const MethodologyPage = () => {
     return (
         <>
             <Flex justifyContent='center' flexDirection="column">

@@ -18,24 +18,26 @@ const testRequestData = [
     {rid: 5, guid: "a7a7a7a7a7a7", status: "error"}
 ]
 
+const testGUID = "3d3c7c35-9d07-467f-8dff-0fc576dd6913";
+
 const testCompletedData = [
-    {rid: 1, guid: "ca2eb848-58cc-4b40-8ab8-8ee82912f616"},
-    {rid: 2, guid: "ca2eb848-58cc-4b40-8ab8-8ee82912f616"},
-    {rid: 3, guid: "ca2eb848-58cc-4b40-8ab8-8ee82912f616"},
-    {rid: 4, guid: "ca2eb848-58cc-4b40-8ab8-8ee82912f616"},
-    {rid: 5, guid: "ca2eb848-58cc-4b40-8ab8-8ee82912f616"},
-    {rid: 6, guid: "ca2eb848-58cc-4b40-8ab8-8ee82912f616"},
-    {rid: 7, guid: "ca2eb848-58cc-4b40-8ab8-8ee82912f616"},
-    {rid: 8, guid: "ca2eb848-58cc-4b40-8ab8-8ee82912f616"},
-    {rid: 9, guid: "ca2eb848-58cc-4b40-8ab8-8ee82912f616"},
-    {rid: 10, guid: "ca2eb848-58cc-4b40-8ab8-8ee82912f616"},
-    {rid: 11, guid: "ca2eb848-58cc-4b40-8ab8-8ee82912f616"},
-    {rid: 12, guid: "ca2eb848-58cc-4b40-8ab8-8ee82912f616"},
-    {rid: 13, guid: "ca2eb848-58cc-4b40-8ab8-8ee82912f616"},
-    {rid: 14, guid: "ca2eb848-58cc-4b40-8ab8-8ee82912f616"},
-    {rid: 15, guid: "ca2eb848-58cc-4b40-8ab8-8ee82912f616"},
-    {rid: 16, guid: "ca2eb848-58cc-4b40-8ab8-8ee82912f616"},
-    {rid: 17, guid: "ca2eb848-58cc-4b40-8ab8-8ee82912f616"},
+    {rid: 1, guid: testGUID},
+    {rid: 2, guid: testGUID},
+    {rid: 3, guid: testGUID},
+    {rid: 4, guid: testGUID},
+    {rid: 5, guid: testGUID},
+    {rid: 6, guid: testGUID},
+    {rid: 7, guid: testGUID},
+    {rid: 8, guid: testGUID},
+    {rid: 9, guid: testGUID},
+    {rid: 10, guid: testGUID},
+    {rid: 11, guid: testGUID},
+    {rid: 12, guid: testGUID},
+    {rid: 13, guid: testGUID},
+    {rid: 14, guid: testGUID},
+    {rid: 15, guid: testGUID},
+    {rid: 16, guid: testGUID},
+    {rid: 17, guid: testGUID},
     {rid: 18, guid: "ca2eb848-58cc-4b40-8ab8-8ee82912f616"},
     {rid: 19, guid: "ca2eb848-58cc-4b40-8ab8-8ee82912f616"},
     {rid: 20, guid: "ca2eb848-58cc-4b40-8ab8-8ee82912f616"},
@@ -49,7 +51,7 @@ const testCompletedData = [
     {rid: 28, guid: "ca2eb848-58cc-4b40-8ab8-8ee82912f616"},
     {rid: 29, guid: "ca2eb848-58cc-4b40-8ab8-8ee82912f616"},
 ]
-const testGUID = "3d3c7c35-9d07-467f-8dff-0fc576dd6913";
+
 
 const ArchivedRequestCard = ({
     requestGUID,

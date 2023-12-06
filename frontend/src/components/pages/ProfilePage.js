@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Text, Flex } from '@chakra-ui/react'
+import { Flex } from '@chakra-ui/react'
 import ProfileCard from '../Cards/ProfileCard';
 
-const ProfilePage = (props) => {
+const ProfilePage = () => {
 
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
@@ -18,7 +18,6 @@ const ProfilePage = (props) => {
         })
         .then((res) => res.json())
         .then((data) => {
-            console.log("session data:", data);
             if (data.isAuthenticated) {
                 whoami();
                 setIsAuthenticated(true);

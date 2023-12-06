@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, Flex } from '@chakra-ui/react'
+import { Flex } from '@chakra-ui/react'
 import IntroCard from '../Cards/IntroCard';
 import CounterCard from '../Cards/Countercard';
 
