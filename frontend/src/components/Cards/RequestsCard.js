@@ -1,62 +1,37 @@
 import React, { useEffect, useState } from 'react';
-import { Text, Tabs, TabList, Image, Tab, TabPanel, TabPanels, Stack, Flex, TableContainer, Table, Thead, Tr, Th, Td, Tbody, Tfoot, Button, useDisclosure, Progress, Spinner, Select } from '@chakra-ui/react'
-import { MdRefresh } from 'react-icons/md';
-import { FaRegClock, FaAngleLeft, FaAngleRight } from 'react-icons/fa'
+import { Text, Tabs, TabList, Image, Tab, TabPanel, TabPanels, Flex, useDisclosure } from '@chakra-ui/react'
+import { FaRegShareSquare } from 'react-icons/fa';
+
 import CancelModal from '../Modals/CancelModal';
 
-import { getBatchRequestsFromGUID, getRealizationImage, getUserSimulations } from '../../utils/utils';
-import CompletedTableRow from '../Table/CompletedTableRow';
+import { getBatchRequestsFromGUID, getLookupRequestFromGUID, getUserSimulations, sleep, timeSince } from '../../utils/utils';
 
-// TODO DELETE
-const testRequestData = [
-    {rid: 1, guid: "a7a7a7a7a7a7", status: "loading"},
-    {rid: 2, guid: "a7a7a7a7a7a7", status: "loading"},
-    {rid: 3, guid: "a7a7a7a7a7a7", status: "success"},
-    {rid: 4, guid: "a7a7a7a7a7a7", status: "error"},
-    {rid: 5, guid: "a7a7a7a7a7a7", status: "error"}
-]
-
-const testCompletedData = [
-    {rid: 1, guid: "ca2eb848-58cc-4b40-8ab8-8ee82912f616"},
-    {rid: 2, guid: "ca2eb848-58cc-4b40-8ab8-8ee82912f616"},
-    {rid: 3, guid: "ca2eb848-58cc-4b40-8ab8-8ee82912f616"},
-    {rid: 4, guid: "ca2eb848-58cc-4b40-8ab8-8ee82912f616"},
-    {rid: 5, guid: "ca2eb848-58cc-4b40-8ab8-8ee82912f616"},
-    {rid: 6, guid: "ca2eb848-58cc-4b40-8ab8-8ee82912f616"},
-    {rid: 7, guid: "ca2eb848-58cc-4b40-8ab8-8ee82912f616"},
-    {rid: 8, guid: "ca2eb848-58cc-4b40-8ab8-8ee82912f616"},
-    {rid: 9, guid: "ca2eb848-58cc-4b40-8ab8-8ee82912f616"},
-    {rid: 10, guid: "ca2eb848-58cc-4b40-8ab8-8ee82912f616"},
-    {rid: 11, guid: "ca2eb848-58cc-4b40-8ab8-8ee82912f616"},
-    {rid: 12, guid: "ca2eb848-58cc-4b40-8ab8-8ee82912f616"},
-    {rid: 13, guid: "ca2eb848-58cc-4b40-8ab8-8ee82912f616"},
-    {rid: 14, guid: "ca2eb848-58cc-4b40-8ab8-8ee82912f616"},
-    {rid: 15, guid: "ca2eb848-58cc-4b40-8ab8-8ee82912f616"},
-    {rid: 16, guid: "ca2eb848-58cc-4b40-8ab8-8ee82912f616"},
-    {rid: 17, guid: "ca2eb848-58cc-4b40-8ab8-8ee82912f616"},
-    {rid: 18, guid: "ca2eb848-58cc-4b40-8ab8-8ee82912f616"},
-    {rid: 19, guid: "ca2eb848-58cc-4b40-8ab8-8ee82912f616"},
-    {rid: 20, guid: "ca2eb848-58cc-4b40-8ab8-8ee82912f616"},
-    {rid: 21, guid: "ca2eb848-58cc-4b40-8ab8-8ee82912f616"},
-    {rid: 22, guid: "ca2eb848-58cc-4b40-8ab8-8ee82912f616"},
-    {rid: 23, guid: "ca2eb848-58cc-4b40-8ab8-8ee82912f616"},
-    {rid: 24, guid: "ca2eb848-58cc-4b40-8ab8-8ee82912f616"},
-    {rid: 25, guid: "ca2eb848-58cc-4b40-8ab8-8ee82912f616"},
-    {rid: 26, guid: "ca2eb848-58cc-4b40-8ab8-8ee82912f616"},
-    {rid: 27, guid: "ca2eb848-58cc-4b40-8ab8-8ee82912f616"},
-    {rid: 28, guid: "ca2eb848-58cc-4b40-8ab8-8ee82912f616"},
-    {rid: 29, guid: "ca2eb848-58cc-4b40-8ab8-8ee82912f616"},
-]
-const testGUID = "3d3c7c35-9d07-467f-8dff-0fc576dd6913";
+import CompletedTab from '../Tabs/CompletedTab';
+import RequestsTab from '../Tabs/RequestsTab';
+import HistoryTab from '../Tabs/HistoryTab';
 
 const RequestsCard = ({
+    csrf,
+    isAuthenticated,
     requestGUID,
     requestData,
 }) => {
+    const { isOpen, onOpen, onClose } = useDisclosure()
     const [refreshLoading, setRefreshLoading] = useState(false);
+    const [tabIndex, setTabIndex] = useState(0);
+    const [requestLoading, setRequestLoading] = useState(true);
+    const [isCopied, setIsCopied] = useState(false);
+    const [date, setDate] = useState("");
+
+    // user historic data
     const [requestHistory, setRequestHistory] = useState([]);
-    const [historyCount, setHistoryCount] = useState(0);
-    const [userCSRF, setUserCSRF] = useState();
+
+    // table data
+    const [rawBatchData, setRawBatchData] = useState([]);
+    const [completedRequests, setCompletedRequests] = useState([]);
+    const [paginatedData, setPaginatedData] = useState([]);
+    const [resultsPerPage, setResultsPerPage] = useState(5);
+
     // TODO remove -> redirect to new page/modal with image
     const [previewImageSrc, setPreviewImageSrc] = useState("");
     
@@ -64,86 +39,102 @@ const RequestsCard = ({
     const [savedPreviewImages, setSavedPreviewImages] = useState({});
     const [currentPreviewRID, setCurrentPreviewRID] = useState();
 
-    const { isOpen, onOpen, onClose } = useDisclosure()
-
-    // pagination controls
-    const [resultsPerPage, setResultsPerPage] = useState(5);
-    const [paginatedData, setPaginatedData] = useState([]);
-    const [pageIndex, setPageIndex] = useState(1);
-
-    // get sim status data then paginate to 5 results by default
-    useEffect(() => {
-        const tempData = [...testCompletedData].slice(0, resultsPerPage);
-        setPaginatedData(tempData);
-    }, [])
-
-    // update results per page on change
-    useEffect(() => {
-        const tempData = [...testCompletedData].slice((pageIndex - 1) * resultsPerPage, Number((pageIndex - 1) * resultsPerPage) + Number(resultsPerPage));
-        setPaginatedData(tempData);
-    }, [pageIndex])
-
-    useEffect(() => {
-        setPageIndex(1);
-        const tempData = [...testCompletedData].slice(0, resultsPerPage);
-        setPaginatedData(tempData);
-    }, [resultsPerPage])
-
-    const IndicatorIcon = (type) => {
-        const typeColor = {
-            "success":"green.300",
-            "loading":"orange.300",
-            "error":"red.400"
-        }
-        return (
-            <Flex align="center" gap="1.5">
-                <Flex h={3} w={3} bg={typeColor[type]} borderRadius={4}></Flex>
-                <Text letterSpacing="-0.5px" fontWeight={700} color={typeColor[type]}>{type.toUpperCase()}</Text>
-            </Flex>
-        )
+    const getTimeSince = (timestamp) => {
+        var localDate = new Date(timestamp)
+        try {
+            return timeSince(localDate)
+        } catch (error) {
+            console.log("timeSince Error: ", error)
+        }     
     }
 
-    const [timer, setTimer] = useState(0);
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setTimer(prev => prev + 1);
-        }, 1000);
-        return () => clearInterval(interval);
-    }, []);
+    const getShareLink = async () => {
+        navigator.clipboard.writeText(`https://demogorgn.rc.ufl.edu/request/${requestGUID}`);
+        setIsCopied(true);
+        await sleep(1600);
+        setIsCopied(false);
+    }
 
     useEffect(() => {
         try {
             setInterval(async () => {
-                // const res = getBatchRequestsFromGUID(requestGUID, userCSRF);
-                // console.log("REQUEST RESPONSE: ", res)
+                // pull batch get status every minute for request
+                if (rawBatchData.length > 0 && rawBatchData.length === completedRequests.length) return;
+                const { statuses } = await getBatchRequestsFromGUID(requestGUID, csrf);
+                setRawBatchData(statuses);
+                const completedVals = statuses.filter((realization) => realization.status === "COMPLETE");
+                const tempData = [...completedVals].slice(0, resultsPerPage);
+                setCompletedRequests(completedVals)
+                setPaginatedData(tempData);
             }, 60000)
         } catch (e) {
             console.log(e);
         }
     }, []);
 
+    const getBatchRealizationStatus = async () => {
+        if (!requestLoading) return;
+        setRefreshLoading(true)
+        
+        const { statuses } = await getBatchRequestsFromGUID(requestGUID, csrf);
+        setRawBatchData(statuses);
+        
+        const completedVals = statuses.filter((realization) => realization.status === "COMPLETE");
+        const tempData = [...completedVals].slice(0, resultsPerPage);
+        
+        // include COMPLETED, ERROR, OR CANCELLED VALUES
+        const finishedVals = statuses.filter((realization) => realization.status === "COMPLETE" || realization.status === "ERROR" || realization.status === "CANCELLED")
+        if (finishedVals.length === statuses.length) {
+            setRequestLoading(false);
+        }
+        setCompletedRequests(completedVals)
+        setPaginatedData(tempData);
+        setRefreshLoading(false)
+        await getLookupDataDate();
+    }
+    useEffect(() => {getBatchRealizationStatus()}, [])
+
     const getRequestHistory = async () => {
         try {
             const res = await getUserSimulations();
-            console.log("reqhistory",res)
             setRequestHistory(res);
-            setHistoryCount(res.length);
         } catch (e) {
             console.log("getRequestHistory Error: ", e);
         }
     }
 
-    useEffect(() => {getRequestHistory()}, [])
+    const getLookupDataDate = async () => {
+        try {
+            const res = await getLookupRequestFromGUID(requestGUID, csrf);
+            var localDate = new Date(res.date);
+            setDate(timeSince(localDate));
+        } catch (e) {
+            console.log("getLookupData Error: ", e);
+        }
+    }
+
+    useEffect(() => {
+        getRequestHistory()
+        getLookupDataDate()
+    }, [])
 
     return (
         <Flex p="30px" w="100%" h="100%" flexDir="column">
-            <CancelModal isOpen={isOpen} onClose={onClose}  />
-            <Text fontWeight={600} fontSize="18pt" mb={2}>Request Overview</Text>
-            {/* <Text>THIS IS CURRENT GUID: {requestGUID ?? ''}{requestData.minx}</Text> */}
+            <CancelModal isOpen={isOpen} onClose={onClose} requestGUID={requestGUID} csrf={csrf}  />
+            <Flex align="center">
+                <Text fontWeight={600} fontSize="18pt" mb={2}>Request Overview</Text>
+                <Flex bg="#fff" border="1px solid #d3d3d3" borderRadius={2} gap="1" ml="auto" px={2} align="center" justifyContent="center" h="32px">
+                    <Text color="#222" fontStyle="italic" fontWeight={500} fontSize="14px">Submitted {date} ago</Text>
+                </Flex>
+                <Flex onClick={() => getShareLink()} _hover={{opacity: "0.9", cursor: "pointer"}} bg="cornflowerblue" gap="1" ml="4" px={2} align="center" justifyContent="center" borderRadius={2} h="32px">
+                    <FaRegShareSquare color="white" />
+                    <Text color="white" fontWeight={500} fontSize="14px">{isCopied ? 'Copied' : 'Share'}</Text>
+                </Flex>
+            </Flex>
             <Flex align="center">
                 {previewImageSrc.length > 0 && (
                     <Flex flexDirection="column" maxW="300px" align="center" justifyContent="center">
-                        <Text color="#1A202C" fontSize="11px" fontStyle="italic">Currently Viewing RID #{currentPreviewRID}</Text>
+                        <Text color="#1A202C" fontSize="11px" fontStyle="italic">Currently Viewing RID #{currentPreviewRID+1}</Text>
                         <Image maxW="300px" maxH="300px" src={previewImageSrc} />
                     </Flex>
                 )}
@@ -181,173 +172,47 @@ const RequestsCard = ({
                     </Flex>
                     <Flex mt={1.5} borderRadius={4} px={1} w="-webkit-fit-content" bg="#F4F4F4" border="1.5px solid #D3D3D3">
                             <Text fontSize="12pt" fontWeight={600}>GUID:&nbsp;</Text>
-                            <Text fontSize="12pt">{testGUID}</Text>
+                            <Text fontSize="12pt">{requestGUID}</Text>
                     </Flex>
                 </Flex>
                 
             </Flex>
-            <Tabs>
+            <Tabs index={tabIndex}>
                 <TabList>
-                    <Tab _selected={{ color: '#0560FF', borderColor: '#0560FF'}}>Requests</Tab>
-                    <Tab _selected={{ color: '#0560FF', borderColor: '#0560FF'}}>Completed</Tab>
-                    <Tab disabled={!historyCount || historyCount === 0} ml="auto" _selected={{ color: '#0560FF', borderColor: '#0560FF'}}>History {historyCount !== 0 && `(${historyCount})`}</Tab>
+                    <Tab onClick={() => setTabIndex(0)} _selected={{ color: '#0560FF', borderColor: '#0560FF'}}>Requests</Tab>
+                    <Tab onClick={() => setTabIndex(1)} _selected={{ color: '#0560FF', borderColor: '#0560FF'}}>Completed {rawBatchData.length > 0 ? `(${completedRequests.length}/${rawBatchData.length})` : ''}</Tab>
+                    <Tab onClick={() => setTabIndex(2)} disabled={!requestHistory || requestHistory.length === 0} ml="auto" _selected={{ color: '#0560FF', borderColor: '#0560FF'}}>History {requestHistory.length !== 0 && `(${requestHistory.length})`}</Tab>
                 </TabList>
 
                 <TabPanels>
                     <TabPanel px={0}>
-                    <Flex mt={4} align="center">
-                        <Flex w="50%" h="10px" align="center">
-                                <Progress mt={1} size="md" w="100%" colorScheme="messenger" hasStripe value={20} />
-                        </Flex>
-                        <Flex w="50%" align="center">
-                            <Flex ml={3} align="center" py={1.5} mb={-1} gap="1">
-                                
-                                <FaRegClock fontSize="10pt" color="#4A5567" />
-                                <Text color="gray.600" fontWeight={600} fontSize="11pt">Elapsed Time: </Text>
-                                <Text fontSize="11pt" color="gray.600" fontWeight={600}>{timer}s</Text>
-                            </Flex>
-                            <Button borderRadius={0} isLoading={refreshLoading} onClick={() => {}} align='center' _hover={{cursor: 'pointer', opacity: '0.84'}} ml="auto" px={3} py={1.5} bg="#0E61FE" h="34px">
-                                <Flex align='center' gap='1'>
-                                    <MdRefresh color='white' />
-                                    <Text color='white' fontWeight={500} fontSize="11pt">Refresh Status</Text>
-                                </Flex>
-                            </Button>
-                            <Flex onClick={() => onOpen()} align='center' _hover={{cursor: 'pointer', opacity: '0.9'}} ml={4} px={3} py={1.5} bg="red.500">
-                                <Text color="white" fontSize="11pt">Cancel All</Text>
-                            </Flex>
-                        </Flex>
-                    </Flex>
-                    <TableContainer mt={5}>
-                        <Table size='sm'>
-                            <Thead>
-                            <Tr bg="#f4f4f4">
-                                <Th borderColor="lightgrey" borderBottomWidth="2px" py={2.5} letterSpacing="-0.5px" fontSize="11pt">RID</Th>
-                                <Th borderColor="lightgrey" borderBottomWidth="2px" letterSpacing="-0.5px" fontSize="11pt" width="50%">GUID</Th>
-                                <Th borderColor="lightgrey" borderBottomWidth="2px" letterSpacing="-0.5px" fontSize="11pt"><Flex><Text>STATUS</Text><Text ml='auto'>ACTION</Text></Flex></Th>
-                            </Tr>
-                            </Thead>
-                            <Tbody>
-                                {testRequestData.map((simRequest, i) => {
-                                    return (
-                                        <Tr key={i}>
-                                            <Td borderBottomWidth="1.5px" fontWeight={700}>{simRequest.rid}</Td>
-                                            <Td borderBottomWidth="1.5px" fontWeight={700}>{simRequest.guid}</Td>
-                                            <Td borderBottomWidth="1.5px">
-                                                <Flex>
-                                                    {IndicatorIcon(simRequest.status)}
-                                                    <Flex _hover={{cursor: 'pointer', opacity: '0.78'}} ml="auto" bg="#f4f4f4" px={1.5} py={1} borderRadius={5}>
-                                                        <Text fontWeight={600}>Cancel</Text>
-                                                    </Flex>
-                                                </Flex>
-                                            </Td>
-                                        </Tr>
-                                    )
-                                })}
-                            </Tbody>
-                        </Table>
-                    </TableContainer>
+                        <RequestsTab
+                            rawBatchData={rawBatchData}
+                            completedRequests={completedRequests}
+                            refreshLoading={refreshLoading}
+                            requestLoading={requestLoading}
+                            setTabIndex={setTabIndex}
+                            getBatchRealizationStatus={getBatchRealizationStatus}
+                            onOpen={onOpen}
+                            csrf={csrf}
+                        />
                     </TabPanel>
                     <TabPanel px={0}>
-                        <Flex mt={0} mb={-3} align="center">
-                            <Flex onClick={() => setPageIndex(Math.max(1, pageIndex - 1))} _hover={{cursor: 'pointer', opacity: 0.7}} h="32px" w="32px" bg="#F4F4F4" p={2} align="center" justifyContent="center">
-                                <FaAngleLeft fontSize="13.5pt" color="#4A5567" />
-                            </Flex>
-                            <Flex onClick={() => {resultsPerPage * pageIndex > testCompletedData.length ? null : setPageIndex(pageIndex + 1)}} _hover={{cursor: 'pointer', opacity: 0.7}} ml={3} h="32px" w="32px" bg="#F4F4F4" p={2} align="center" justifyContent="center">
-                                <FaAngleRight fontSize="13.5pt" color="#4A5567" />
-                            </Flex>
-                            <Text ml={4} color="#4A5567" fontSize="10.5pt" fontStyle="italic">Realizations {((pageIndex - 1) * resultsPerPage + 1)} - {resultsPerPage * pageIndex > testCompletedData.length ? testCompletedData.length : resultsPerPage * pageIndex} of {testCompletedData.length}</Text>
-                            <Text ml="auto" color="#4A5567" fontSize="10.5pt">Results per page</Text>
-                            <Select onChange={(v) => setResultsPerPage(v.target.value)} value={resultsPerPage} focusBorderColor='#065FFF' fontSize="10.5pt" color="#4A5567" ml={2} w="54px" variant='flushed'>
-                                <option value={5}>5</option>
-                                <option value={10}>10</option>
-                                <option value={50}>50</option>
-                            </Select>
-                        </Flex>
-                        <TableContainer mt={5}>
-                            <Table border="2px solid #F4F4F4" size='sm'>
-                                <Thead>
-                                <Tr bg="#f4f4f4">
-                                    <Th borderColor="lightgrey" borderBottomWidth="2px" py={2.5} letterSpacing="-0.5px" fontSize="11pt">RID</Th>
-                                    <Th borderColor="lightgrey" borderBottomWidth="2px" letterSpacing="-0.5px" fontSize="11pt" width="50%">GUID</Th>
-                                    <Th borderColor="lightgrey" borderBottomWidth="2px" letterSpacing="-0.5px" fontSize="11pt"><Flex><Text>ACTIONS</Text><Text ml='auto'></Text></Flex></Th>
-                                </Tr>
-                                </Thead>
-                                <Tbody>
-                                    {paginatedData.map((simRequest, i) => {
-                                        return (
-                                            <CompletedTableRow 
-                                                key={i} 
-                                                simRequest={simRequest} 
-                                                setPreviewImageSrc={setPreviewImageSrc} 
-                                                savedPreviewImages={savedPreviewImages} 
-                                                setSavedPreviewImages={setSavedPreviewImages} 
-                                                currentPreviewRID={currentPreviewRID}
-                                                setCurrentPreviewRID={setCurrentPreviewRID}
-                                            />
-                                        )
-                                    })}
-                                </Tbody>
-                            </Table>
-                        </TableContainer>
-                        
+                        <CompletedTab 
+                            completedRequests={completedRequests}
+                            paginatedData={paginatedData}
+                            setPaginatedData={setPaginatedData}
+                            resultsPerPage={resultsPerPage}
+                            setResultsPerPage={setResultsPerPage}
+                            setPreviewImageSrc={setPreviewImageSrc} 
+                            savedPreviewImages={savedPreviewImages}
+                            setSavedPreviewImages={setSavedPreviewImages}
+                            currentPreviewRID={currentPreviewRID}
+                            setCurrentPreviewRID={setCurrentPreviewRID}
+                        />
                     </TabPanel>
                     <TabPanel px={0}>
-                        <Flex gap="2">
-                            {!requestHistory || (requestHistory && historyCount === 0) && (
-                                <Stack mt={2} gap={2.5}>
-                                    <Text>Realization requests you've already submitted will appear here.</Text>
-                                    <Text mt={4}>Currently, you have none.</Text>
-                                </Stack>
-                            )}
-                            {requestHistory && requestHistory.map((req, i) => {
-                                return (
-                                    <Flex key={i} border="1.5px solid #D3D3D3" flexDirection="column" bg="#fafafa" p={4} w="-webkit-fit-content">
-                                        
-                                        <Flex flexDirection="column">
-                                            
-                                            <Flex gap="2">
-                                                <Flex>
-                                                    <Text fontSize="11pt" fontWeight={600}>Max X:&nbsp;</Text>
-                                                    <Text fontSize="11pt">{req.maxx}</Text>
-                                                </Flex>
-                                                <Flex>
-                                                    <Text fontSize="11pt" fontWeight={600}>Max Y:&nbsp;</Text>
-                                                    <Text fontSize="11pt">{req.maxy}</Text>
-                                                </Flex>
-                                            </Flex>
-                                            <Flex gap="2">
-                                                <Flex>
-                                                    <Text fontSize="11pt" fontWeight={600}>Min X:&nbsp;</Text>
-                                                    <Text fontSize="11pt">{req.minx}</Text>
-                                                </Flex>
-                                                <Flex>
-                                                    <Text fontSize="11pt" fontWeight={600}>Min Y:&nbsp;</Text>
-                                                    <Text fontSize="11pt">{req.miny}</Text>
-                                                </Flex>
-                                            </Flex>
-                                        </Flex>
-                                        <Flex w="-webkit-fit-content">
-                                            <Text fontSize="11pt" fontWeight={600}>Resolution:&nbsp;</Text>
-                                            <Text fontSize="11pt">{req.cellSize}</Text>
-                                        </Flex>
-                                        <Flex w="-webkit-fit-content">
-                                            <Text fontSize="11pt" fontWeight={600}>Realizations:&nbsp;</Text>
-                                            <Text fontSize="11pt">{req.realizations}</Text>
-                                        </Flex>
-                                        <Flex w="-webkit-fit-content">
-                                            <Text fontSize="11pt" fontWeight={600}>Timestamp:&nbsp;</Text>
-                                            <Text fontSize="11pt">{req.date.slice(0,-8)}</Text>
-                                        </Flex>
-                                        <Flex w="-webkit-fit-content">
-                                            <Text fontSize="11pt" fontWeight={600}>GUID:&nbsp;</Text>
-                                            <Text _hover={{textDecoration: 'underline', cursor: 'pointer'}} fontSize="11pt" fontWeight={500} color="#065FFF">{req.guid.slice(0,-10)}...</Text>
-                                        </Flex>
-                                        
-                                        
-                                    </Flex>
-                                )
-                            })}
-                        </Flex>
+                        <HistoryTab requestHistory={requestHistory} />
                     </TabPanel>
                 </TabPanels>
             </Tabs>

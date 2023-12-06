@@ -1,25 +1,20 @@
 import React from "react"
 import { 
-    useDisclosure,
     Drawer,
     DrawerOverlay,
     DrawerContent,
     DrawerHeader,
     DrawerBody,
-    DrawerFooter,
     Heading,
-    Button,
     Text,
     Flex,
     CloseButton,
-    Link
 } from "@chakra-ui/react"
 
 const NavDrawer = ({
     isOpen,
     onClose
 }) => {
-    
     return (
         <Drawer onClose={onClose} isOpen={isOpen} size="sm">
             <DrawerOverlay />

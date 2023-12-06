@@ -101,7 +101,6 @@ const AuthPage2 = (props) => {
         })
         .then((res) => res.json())
         .then((data) => {
-            console.log("session data:", data);
             if (data.isAuthenticated) {
                 setIsAuthenticated(true);
                 
