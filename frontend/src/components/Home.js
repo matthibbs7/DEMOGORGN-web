@@ -12,10 +12,14 @@ import AboutPage from './pages/AboutPage';
 import ProfilePage from './pages/ProfilePage';
 import HistoryPage from './pages/HistoryPage';
 import ViewRequestPage from './pages/ViewRequestPage';
+import FeedbackPage from './pages/FeedbackPage';
+import toast from 'react-hot-toast';
 
 const Home = () => {
     const [csrf, setCsrf] = useState("");
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [username, setUsername] = useState("");
+    const [email, setEmail] = useState("");
 
     const getCSRFTokenFromCookies = () => {
         let csrfToken = "";
@@ -42,7 +46,31 @@ const Home = () => {
             console.log(err);
         });
     };
-    //
+    
+    const isResponseOk = (response) => {
+        if (response.status >= 200 && response.status <= 299) {
+            return response.json();
+        } else {
+            throw Error(response.statusText);
+        }
+    }
+    
+    const whoami = () => {
+        fetch("/api/whoami/", {
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+        })
+        .then((res) => res.json())
+        .then((data) => {
+            setUsername(data.username)
+            setEmail(data.email)
+        })
+        .catch((err) => {
+            console.log("whoami Error: ", err);
+        });
+    }
 
     const getSession = () => {
         getCSRF();
@@ -56,14 +84,41 @@ const Home = () => {
         .then((data) => {
             if (data.isAuthenticated) {
                 setIsAuthenticated(true);
-                
+                whoami();
             } else {
                 setIsAuthenticated(false);
                 getCSRF();
             }
         })
         .catch((err) => {
-            console.log(err);
+            console.log("getSession Error: ", err);
+        });
+    }
+
+    const logout = () => {
+        fetch("/api/logout/", {
+            credentials: "include",
+        })
+        .then(isResponseOk)
+        .then((data) => {
+            setIsAuthenticated(false);
+            toast.success('Successfully Logged Out!', {
+                style: {
+                  border: '1px solid grey',
+                  padding: '8px',
+                  color: '#0E61FE',
+                  fontWeight: 'bold',
+                  fontFamily: `"IBM Plex Sans"`,
+                },
+                iconTheme: {
+                  primary: '#ffffff',
+                  secondary: '#0E61FE',
+                },
+            });
+            getCSRF();
+        })
+        .catch((err) => {
+            console.log("logout Error: ", err);
         });
     }
 
@@ -73,9 +128,9 @@ const Home = () => {
 
     return (
         <>
-            <Navbar />
+            <Navbar isAuthenticated={isAuthenticated} logout={logout}  />
             <Box w='100%' display={{base: "none", md: "unset"}}>
-                <SelectorBar />
+                <SelectorBar isAuthenticated={isAuthenticated} username={username} logout={logout} />
             </Box>
             <BrowserRouter>
                 <Routes>
@@ -83,7 +138,15 @@ const Home = () => {
                     <Route path='/simulate' element={<SimulationPage csrf={csrf} isAuthenticated={isAuthenticated} />}/>
                     <Route path='/methodology' element={<MethodologyPage />}/>
                     <Route path='/about' element={<AboutPage />}/>
-                    <Route path='/profile' element={<ProfilePage />}/>
+                    <Route path='/feedback' element={<FeedbackPage />}/>
+                    <Route path='/profile' element={
+                        <ProfilePage 
+                            isAuthenticated={isAuthenticated} 
+                            username={username} 
+                            email={email}
+                            logout={logout} 
+                        />}
+                    />
                     <Route path='/history' element={<HistoryPage csrf={csrf} isAuthenticated={isAuthenticated} />}/>
                     <Route exact path='/request/:guid' element={<ViewRequestPage csrf={csrf} />}/>
                     <Route exact path='/request/:guid/:rid' element={<ViewRequestPage csrf={csrf} />}/>

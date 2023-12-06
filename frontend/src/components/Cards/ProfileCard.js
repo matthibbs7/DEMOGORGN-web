@@ -1,7 +1,12 @@
-import { Flex, Text, Link, Image, Divider, Stack, Button } from '@chakra-ui/react';
-import React, { useEffect, useState } from 'react';
+import { Flex, Text, Stack, Button } from '@chakra-ui/react';
+import React from 'react';
 
-const ProfileCard = ({ email, username, isAuthenticated }) => {
+const ProfileCard = ({ 
+    email, 
+    username, 
+    isAuthenticated,
+    logout,
+}) => {
 
     return (
         <>  
@@ -23,7 +28,7 @@ const ProfileCard = ({ email, username, isAuthenticated }) => {
                                     </Flex>
                                     
                                 </Flex> 
-                                <Button fontSize="11pt" pl="15px" _hover={{backgroundColor: '#044dd4'}} bg="#0E61FE" color="white" borderRadius={0} fontWeight={300} mt={8} width="130px" height="48px">Logout&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→</Button>
+                                <Button onClick={() => {logout();window.location.href="/"}} fontSize="11pt" pl="15px" _hover={{backgroundColor: '#044dd4'}} bg="#0E61FE" color="white" borderRadius={0} fontWeight={300} mt={8} width="130px" height="48px">Logout&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→</Button>
                             </Stack>
 
                             :

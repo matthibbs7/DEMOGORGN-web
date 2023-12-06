@@ -75,7 +75,7 @@ const CompletedTableRow = ({
                             <Text fontWeight={600}>Copy</Text>
                         ) }
                     </Flex>
-                    <Flex onClick={() => window.open(`/api/simulation-csv/${simRequest.guid}/${simRequest.rid}`, "_blank")} _hover={{cursor: 'pointer', opacity: '0.78'}} ml="auto" bg="#f4f4f4" px={1.5} py={1} borderRadius={5}>
+                    <Flex onClick={() => window.open(`/api/simulation-csv/${simRequest.guid}/${simRequest.rid}/`, "_blank")} _hover={{cursor: 'pointer', opacity: '0.78'}} ml="auto" bg="#f4f4f4" px={1.5} py={1} borderRadius={5}>
                         <Text fontWeight={600}>Download CSV</Text>
                     </Flex>
                 </Flex>

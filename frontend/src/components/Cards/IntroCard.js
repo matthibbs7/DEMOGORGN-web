@@ -53,7 +53,7 @@ const IntroCard = () => {
                 <Flex width={["100%", "100%", "50%", "50%"]} flexDirection="column" p="30px">
                     <Text fontWeight={600} fontSize="18pt">What is DEMOGORGN GREENLAND?</Text>
 
-                    <Text fontSize="11pt" mt={5} pt={3}>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
+                    <Text fontSize="11pt" mt={5} pt={3}>Digital Elevation Model Of Geostatistical ORiGiN or <i>DEMOGORGN</i> for short is a website that allows researchers that lack computing researchers to generate various realizations of Greenland topography.
 
                         Why do we use it?
                         It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here
@@ -64,11 +64,6 @@ const IntroCard = () => {
                     <Link href="/about" mt={2}>
                         <Text fontWeight={600} color="#0E61FE">Learn about the Gator Glaciology Lab →</Text>
                     </Link>
-                    {/* { isAuthenticated ?
-                        <Text fontWeight={800}>Logout!</Text>
-                        :
-                        <Text fontWeight={800}>Login!</Text>
-                    } */}
                 </Flex>
                 <Flex width={["100%", "100%", "50%", "50%"]} bgColor="white" padding="30px" align="center">
                     <Image src="https://i.imgur.com/d71xGIY.jpg" height="400px" />
