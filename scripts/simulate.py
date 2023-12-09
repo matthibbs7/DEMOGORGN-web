@@ -121,6 +121,9 @@ def simulate(xmin: float, xmax: float, ymin: float, ymax : float, res: int, num_
 
         # read data from input file
         df_bed = pd.read_csv(datafile)
+        logPrint(f"Number of rows before filtering: {len(df_bed)}")
+        df_bed = df_bed[(df_bed[x] >= xmin) & (df_bed[x] <= xmax) & (df_bed[y] >= ymin) & (df_bed[y] <= ymax)]
+        logPrint(f"Number of rows after filtering: {len(df_bed)}")
 
         # grid data
         df_data, grid_matrix, df_nan = sgs_preprocess.grid_data(df_bed, xmin, xmax, ymin, ymax, res, x, y, z)
