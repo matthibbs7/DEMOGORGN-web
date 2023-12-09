@@ -27,13 +27,10 @@ There are 2 steps required to get the website setup on your local environment (s
 5. Project is available at http://localhost:3000 from the browser.
 
 
+### Further Project Documentation
 
-### Docker set up
+* [Managing The Gunicorn Server](managing_gunicorn.md)
+* [Installing Miniconda on Pubapps](miniconda_setup.md)
 
-```
-docker container rm -f demogorgn_test 
-docker image rm demogorgn:latest
-docker build --platform linux/amd64 -t demogorgn . -f Dockerfile_oel8
-docker run --platform linux/amd64  -d -p 8000:80 --name demogorgn_test demogorgn:latest
-```
+
 

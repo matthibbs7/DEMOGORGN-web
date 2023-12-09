@@ -112,39 +112,49 @@ def simulate(xmin: float, xmax: float, ymin: float, ymax : float, res: int, num_
     TODO
     """
     
-    for i in range(num_realizations):
-        updateRealizationRecord(guid,i,'PENDING',dbfile) # Set all realizations to pending. 
-            
-    #xmin = None; xmax = None; ymin = None ; ymax = None ## Plot entire datafile TODO: Remove when done testing
-    x = "X"; y = "Y"; z = "BED" # Column headings in CSV data files
-    
-    # read data from input file
-    df_bed = pd.read_csv(datafile)
-    
-    # grid data
-    df_data, grid_matrix, df_nan = sgs_preprocess.grid_data(df_bed, xmin, xmax, ymin, ymax, res, x, y, z)
-    
-    # normal score transformation of bed elevation
-    df_data.loc[:,'Norm_Bed'], nst_trans = sgs_preprocess.nscore(df_data, z)
-    
-    # adaptive clustering
-    max_pts = 100           # maximum number of points in each cluster
-    min_len = 50000         # minimum side length of squares
-    df_data, i = sgs_preprocess.adaptive_partitioning(df_data, xmin, xmax, ymin, ymax, max_pts, min_len)
-    
-    # get number of processes to use
-    if num_cpus is None:
-        logPrint("No CPU count was specified, program will run on all cores available.")
-        processes = int(os.cpu_count())
-    else: 
-        processes = num_cpus
-    
-    # get variograms for each cluster in parallel
-    max_lag = 30000         # maximum lag distance
-    n_lags = 100            # number of bins
-    gamma = sgs_preprocess.get_variograms(df_data, n_lags, max_lag, processes)
-    
+    try:  
+        for i in range(num_realizations):
+            updateRealizationRecord(guid,i,'PENDING',dbfile) # Set all realizations to pending. 
 
+        #xmin = None; xmax = None; ymin = None ; ymax = None ## Plot entire datafile TODO: Remove when done testing
+        x = "X"; y = "Y"; z = "BED" # Column headings in CSV data files
+
+        # read data from input file
+        df_bed = pd.read_csv(datafile)
+        logPrint(f"Number of rows before filtering: {len(df_bed)}")
+        df_bed = df_bed[(df_bed[x] >= xmin) & (df_bed[x] <= xmax) & (df_bed[y] >= ymin) & (df_bed[y] <= ymax)]
+        logPrint(f"Number of rows after filtering: {len(df_bed)}")
+
+        # grid data
+        df_data, grid_matrix, df_nan = sgs_preprocess.grid_data(df_bed, xmin, xmax, ymin, ymax, res, x, y, z)
+
+        # normal score transformation of bed elevation
+        df_data.loc[:,'Norm_Bed'], nst_trans = sgs_preprocess.nscore(df_data, z)
+
+        # adaptive clustering
+        max_pts = 100           # maximum number of points in each cluster
+        min_len = 50000         # minimum side length of squares
+        df_data, i = sgs_preprocess.adaptive_partitioning(df_data, xmin, xmax, ymin, ymax, max_pts, min_len)
+
+        # get number of processes to use
+        if num_cpus is None:
+            logPrint("No CPU count was specified, program will run on all cores available.")
+            processes = int(os.cpu_count())
+        else: 
+            processes = num_cpus
+
+        # get variograms for each cluster in parallel
+        max_lag = 30000         # maximum lag distance
+        n_lags = 100            # number of bins
+        gamma = sgs_preprocess.get_variograms(df_data, n_lags, max_lag, processes)
+
+        
+    except Exception as e:
+        logPrint(f"Ran into error: {e} while gridding data and getting variogreams")
+        for i in range(num_realizations):
+            updateRealizationRecord(guid,i,'ERROR',dbfile) # Set all realizations to ERROR. 
+        raise e
+    
     for i in range(num_realizations):
         
         # Start monitoring process

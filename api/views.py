@@ -150,8 +150,7 @@ class CreateSimulationView(APIView):
         for x in range(0,realizations):
             realization = RealizationsStatuses(guid = req,status= "PENDING", last_update = timezone.now(), rid = x)
             realization.save()
-        #TODO Make this OS call with the appropriate flags, but only when running in devmode 
-        #python3 ./scripts/simulate.py --output_dir ./api/output --datafile ./api/data/PIG_data.csv --guid e388f593-9c7d-4dc1-a45c-052e0f54374d --res 200 --num_realizations 2 --num_cpus 12 --dbfile ./db.sqlite3
+            
         script_path = os.path.join(settings.BASE_DIR,'scripts','simulate.py')
         output_path = os.path.join(settings.BASE_DIR,'api','output')
         command_log_path = os.path.join(settings.BASE_DIR,'api','output',guid,'output.log')
@@ -165,7 +164,6 @@ class CreateSimulationView(APIView):
                 process = subprocess.Popen(command, stdout=out_file, stderr=out_file, text=True)
         else:
             # Build up an array where each element is a string representing a line from the SLURM job shell script for this request
-            slurm_email_account = "kerekovskik@ufl.edu"
             slurm_script_contents = []
             slurm_script_contents.append("#!/bin/sh")
             slurm_script_contents.append("#SBATCH --cpus-per-task=12")
@@ -173,12 +171,12 @@ class CreateSimulationView(APIView):
             slurm_script_contents.append("#SBATCH --time=24:00:00")
             slurm_script_contents.append(f"#SBATCH --job-name=gsim_{guid}")
             slurm_script_contents.append("#SBATCH --mail-type=ALL")
-            slurm_script_contents.append(f"#SBATCH --mail-user={slurm_email_account}")
+            #slurm_email_account = ""
+            #slurm_script_contents.append(f"#SBATCH --mail-user={slurm_email_account}")
             slurm_script_contents.append("#SBATCH --output=" + os.path.join(settings.BASE_DIR,'api','output',guid,'serial_%j.out') )
             slurm_script_contents.append("pwd; hostname; date")
             miniconda_interpreter = "/pubapps/emackie/miniconda3/envs/demogorgn_env/bin/python3"
-            #datafile_path = "/pubapps/emackie/data/total_demo_gl_not_gridded.csv" # TODO: Uncomment when the issue with running large simulations is fixed.
-            #xmin = -652925; xmax = 879625; ymin = -3384425; ymax = -632675
+            datafile_path = "/pubapps/emackie/data/total_demo_gl_not_gridded.csv" 
             command = [miniconda_interpreter,script_path,"--output_dir",output_path,"--datafile",datafile_path,"--guid",guid,"--res",str(cellSize),"--num_realizations",str(realizations), "--num_cpus",str(8),"--dbfile",dbfile_path ,"--xmin",str(minx),"--xmax", str(maxx),"--ymin",str(miny),"--ymax",str(maxy) ]
             command_str = " ".join(command)
             slurm_script_contents.append(command_str)
@@ -194,16 +192,7 @@ class CreateSimulationView(APIView):
             with open(command_log_path,'w') as out_file:
                 command = ["sbatch",slurm_script_path]
                 process = subprocess.Popen(command, stdout=out_file, stderr=out_file, text=True)
-        
-            
-            
-            
-        #python3 ./scripts/simulate.py --output_dir ./api/output --datafile ./api/data/PIG_data.csv --guid e388f593-9c7d-4dc1-a45c-052e0f54374d --res 200 --num_realizations 2 --num_cpus 12 --dbfile ./db.sqlite3
-        #statUtil.cosim_mm1(minx=minx,maxx=maxx,miny=miny,maxy=maxy,res=cellSize,sim_num=realizations,k=k,rad=rad)
-        #demogorgn_backend.simulate(None,None,None,None,cellSize,realizations,guid)
-
-
-
+                
         return Response({"guid":guid})
     
 class SimulationImageEndpoint(APIView):
