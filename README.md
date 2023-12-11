@@ -31,6 +31,8 @@ There are 2 steps required to get the website setup on your local environment (s
 
 * [Managing The Gunicorn Server](managing_gunicorn.md)
 * [Installing Miniconda on Pubapps](miniconda_setup.md)
+* [Building the static files](build_static_files.md)
+* [Deploying the static files](deploy_static_files.md)
 
 
 
