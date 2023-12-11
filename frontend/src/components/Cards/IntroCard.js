@@ -53,11 +53,7 @@ const IntroCard = () => {
                 <Flex width={["100%", "100%", "50%", "50%"]} flexDirection="column" p="30px">
                     <Text fontWeight={600} fontSize="18pt">What is DEMOGORGN GREENLAND?</Text>
 
-                    <Text fontSize="11pt" mt={5} pt={3}>Digital Elevation Model Of Geostatistical ORiGiN or <i>DEMOGORGN</i> for short is a website that allows researchers that lack computing researchers to generate various realizations of Greenland topography.
-
-                        Why do we use it?
-                        It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here
-                    </Text>
+                    <Text fontSize="11pt" mt={5} pt={3}>Digital Elevation Model Of Geostatistical ORiGiN or <i>DEMOGORGN</i> for short is a methodology for generating various realistic realizations of Greenland topography. Topographical realizations may be useful for climate modeling, glacier dynamics, infrastructure planning, and geological studies. Realizations of Greenland topography are computed as scheduled jobs on the University of Florida's supercomputer, <i>HiPerGator</i>. The usefulness of this website is that it allows researchers and inviduals who may lack computing resources or programmatic expertise the ability to perform large-scale computations utilizing popular geostatistical programming libraries like <a style={{color: 'blue', textDecoration: 'underline'}} onClick={() => window.location = "https://gatorglaciology.github.io/gstatsimbook/intro.html"}>GStatSim</a> to generate unique realizations.</Text>
                     <Link href="/simulate" mt={5}>
                         <Text fontWeight={600} color="#0E61FE">Generate Realizations →</Text>
                     </Link>
